@@ -41,3 +41,23 @@ def get_random_task():
     import random
     task = random.choice(tasks)
     return jsonify(task.serialize()), 200
+
+@bp.route('/tasks/<int:task_id>/complete', methods=['PATCH'])
+def complete_task(task_id):
+    task = Task.query.get(task_id)
+    if not task:
+        return jsonify({"error": "Task not found"}), 404
+
+    task.is_completed = True
+    db.session.commit()
+    return jsonify(task.serialize()), 200
+
+@bp.route('/tasks/<int:task_id>', methods=['DELETE'])
+def delete_task(task_id):
+    task = Task.query.get(task_id)
+    if not task:
+        return jsonify({"error": "Task not found"}), 404
+
+    db.session.delete(task)
+    db.session.commit()
+    return jsonify({"message": f"Task {task_id} deleted."}), 200
