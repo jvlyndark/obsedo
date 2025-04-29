@@ -2,6 +2,8 @@ from flask import Blueprint, jsonify, request
 from datetime import datetime
 from app.models import db, Task
 
+import openai
+
 bp = Blueprint('routes', __name__)
 
 @bp.route('/')
@@ -86,3 +88,67 @@ def delete_task(task_id):
     db.session.delete(task)
     db.session.commit()
     return jsonify({"message": f"Task {task_id} deleted."}), 200
+
+@bp.route('/generate-tasks', methods=['POST'])
+def generate_tasks_from_goal():
+    data = request.get_json()
+    goal = data.get('goal')
+    if not goal:
+        return jsonify({"error": "Missing 'goal' in request body"}), 400
+
+    prompt = f"""
+You're an intelligent task manager. The user wants to achieve the following goal:
+
+"{goal}"
+
+Break it down into 3–5 concrete tasks. For each task, return:
+- title
+- category (e.g. focus, admin, travel, social)
+- priority (low, medium, high)
+- optional due date (in ISO 8601 format, or null if none)
+
+Return as JSON in the following format:
+
+[
+  {{
+    "title": "...",
+    "category": "...",
+    "priority": "...",
+    "due_date": "..." or null
+  }},
+  ...
+]
+"""
+
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "You are a helpful task planner."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7
+        )
+
+        content = response.choices[0].message.content
+        tasks = json.loads(content)
+
+        created = []
+        for item in tasks:
+            due = item.get('due_date')
+            due_date = datetime.fromisoformat(due) if due else None
+            task = Task(
+                title=item['title'],
+                category=item['category'],
+                priority=item.get('priority', 'medium'),
+                due_date=due_date
+            )
+            db.session.add(task)
+            created.append(task)
+
+        db.session.commit()
+        return jsonify([t.serialize() for t in created]), 201
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
