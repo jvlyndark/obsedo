@@ -1,4 +1,5 @@
 from flask import Blueprint, jsonify, request
+from datetime import datetime
 from app.models import db, Task
 
 bp = Blueprint('routes', __name__)
@@ -12,11 +13,18 @@ def create_task():
     data = request.get_json()
     title = data.get('title')
     category = data.get('category')
+    priority = data.get('priority', 'medium')
+    due_date_raw = data.get('due_date')
 
     if not title or not category:
         return jsonify({"error": "Missing title or category"}), 400
 
-    task = Task(title=title, category=category)
+    try:
+        due_date = datetime.fromisoformat(due_date_raw) if due_date_raw else None
+    except ValueError:
+        return jsonify({"error": "Invalid date format. Use ISO 8601."}), 400
+
+    task = Task(title=title, category=category, priority=priority, due_date=due_date)
     db.session.add(task)
     db.session.commit()
 
