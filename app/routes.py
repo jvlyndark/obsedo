@@ -32,7 +32,24 @@ def create_task():
 
 @bp.route('/tasks', methods=['GET'])
 def get_tasks():
-    tasks = Task.query.all()
+    query = Task.query
+
+    priority = request.args.get('priority')
+    category = request.args.get('category')
+    is_completed = request.args.get('is_completed')
+    sort = request.args.get('sort')
+
+    if priority:
+        query = query.filter_by(priority=priority)
+    if category:
+        query = query.filter_by(category=category)
+    if is_completed is not None:
+        is_completed_bool = is_completed.lower() == 'true'
+        query = query.filter_by(is_completed=is_completed_bool)
+    if sort == 'due_date':
+        query = query.order_by(Task.due_date.asc())
+
+    tasks = query.all()
     return jsonify([task.serialize() for task in tasks]), 200
 
 @bp.route('/tasks/random', methods=['GET'])
