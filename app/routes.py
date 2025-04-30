@@ -106,41 +106,45 @@ def generate_tasks_from_goal():
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
     data = request.get_json()
     goal = data.get("goal")
+    model = data.get("model", "gpt-3.5-turbo-0125")
+    temperature = data.get("temperature", 0.7)
+    max_tasks = data.get("max_tasks", 5)
+
     if not goal:
         return jsonify({"error": "Missing 'goal' in request body"}), 400
 
     prompt = f"""
-You're an intelligent task manager. The user wants to achieve the following goal:
+        You're an intelligent task manager. The user wants to achieve the following goal:
 
-"{goal}"
+        "{goal}"
 
-Break it down into 3–5 concrete tasks. For each task, return:
-- title
-- category (e.g. focus, admin, travel, social)
-- priority (low, medium, high)
-- optional due date (in ISO 8601 format, or null if none)
+        Break it down into {max_tasks} concrete tasks. For each task, return:
+        - title
+        - category (e.g. focus, admin, travel, social)
+        - priority (low, medium, high)
+        - optional due date (in ISO 8601 format, or null if none)
 
-Return as JSON in the following format:
+        Return as JSON in the following format:
 
-[
-  {{
-    "title": "...",
-    "category": "...",
-    "priority": "...",
-    "due_date": "..." or null
-  }},
-  ...
-]
-"""
+        [
+        {{
+            "title": "...",
+            "category": "...",
+            "priority": "...",
+            "due_date": "..." or null
+        }},
+        ...
+        ]
+        """
 
     try:
         response = client.chat.completions.create(
-            model="gpt-4",
+            model=model,
             messages=[
                 {"role": "system", "content": "You are a helpful task planner."},
                 {"role": "user", "content": prompt},
             ],
-            temperature=0.7,
+            temperature=temperature,
         )
 
         content = response.choices[0].message.content
