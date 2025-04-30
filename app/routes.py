@@ -8,19 +8,21 @@ import openai
 
 from app.models import db, Task
 
-bp = Blueprint('routes', __name__)
+bp = Blueprint("routes", __name__)
 
-@bp.route('/')
+
+@bp.route("/")
 def index():
     return jsonify({"message": "Welcome to Obsedo"})
 
-@bp.route('/tasks', methods=['POST'])
+
+@bp.route("/tasks", methods=["POST"])
 def create_task():
     data = request.get_json()
-    title = data.get('title')
-    category = data.get('category')
-    priority = data.get('priority', 'medium')
-    due_date_raw = data.get('due_date')
+    title = data.get("title")
+    category = data.get("category")
+    priority = data.get("priority", "medium")
+    due_date_raw = data.get("due_date")
 
     if not title or not category:
         return jsonify({"error": "Missing title or category"}), 400
@@ -36,31 +38,33 @@ def create_task():
 
     return jsonify(task.serialize()), 201
 
-@bp.route('/tasks', methods=['GET'])
+
+@bp.route("/tasks", methods=["GET"])
 def get_tasks():
     query = Task.query
 
-    priority = request.args.get('priority')
-    category = request.args.get('category')
-    is_completed = request.args.get('is_completed')
-    sort = request.args.get('sort')
+    priority = request.args.get("priority")
+    category = request.args.get("category")
+    is_completed = request.args.get("is_completed")
+    sort = request.args.get("sort")
 
     if priority:
         query = query.filter_by(priority=priority)
     if category:
         query = query.filter_by(category=category)
     if is_completed is not None:
-        is_completed_bool = is_completed.lower() == 'true'
+        is_completed_bool = is_completed.lower() == "true"
         query = query.filter_by(is_completed=is_completed_bool)
-    if sort == 'due_date':
+    if sort == "due_date":
         query = query.order_by(Task.due_date.asc())
 
     tasks = query.all()
     return jsonify([task.serialize() for task in tasks]), 200
 
-@bp.route('/tasks/random', methods=['GET'])
+
+@bp.route("/tasks/random", methods=["GET"])
 def get_random_task():
-    category = request.args.get('category')
+    category = request.args.get("category")
     if category:
         tasks = Task.query.filter_by(category=category, is_completed=False).all()
     else:
@@ -70,10 +74,12 @@ def get_random_task():
         return jsonify({"message": "No available tasks."}), 404
 
     import random
+
     task = random.choice(tasks)
     return jsonify(task.serialize()), 200
 
-@bp.route('/tasks/<int:task_id>/complete', methods=['PATCH'])
+
+@bp.route("/tasks/<int:task_id>/complete", methods=["PATCH"])
 def complete_task(task_id):
     task = Task.query.get(task_id)
     if not task:
@@ -83,7 +89,8 @@ def complete_task(task_id):
     db.session.commit()
     return jsonify(task.serialize()), 200
 
-@bp.route('/tasks/<int:task_id>', methods=['DELETE'])
+
+@bp.route("/tasks/<int:task_id>", methods=["DELETE"])
 def delete_task(task_id):
     task = Task.query.get(task_id)
     if not task:
@@ -93,11 +100,12 @@ def delete_task(task_id):
     db.session.commit()
     return jsonify({"message": f"Task {task_id} deleted."}), 200
 
-@bp.route('/generate-tasks', methods=['POST'])
+
+@bp.route("/generate-tasks", methods=["POST"])
 def generate_tasks_from_goal():
-    openai.api_key = os.getenv('OPENAI_API_KEY')
+    openai.api_key = os.getenv("OPENAI_API_KEY")
     data = request.get_json()
-    goal = data.get('goal')
+    goal = data.get("goal")
     if not goal:
         return jsonify({"error": "Missing 'goal' in request body"}), 400
 
@@ -130,9 +138,9 @@ Return as JSON in the following format:
             model="gpt-4",
             messages=[
                 {"role": "system", "content": "You are a helpful task planner."},
-                {"role": "user", "content": prompt}
+                {"role": "user", "content": prompt},
             ],
-            temperature=0.7
+            temperature=0.7,
         )
 
         content = response.choices[0].message.content
@@ -140,13 +148,13 @@ Return as JSON in the following format:
 
         created = []
         for item in tasks:
-            due = item.get('due_date')
+            due = item.get("due_date")
             due_date = datetime.fromisoformat(due) if due else None
             task = Task(
-                title=item['title'],
-                category=item['category'],
-                priority=item.get('priority', 'medium'),
-                due_date=due_date
+                title=item["title"],
+                category=item["category"],
+                priority=item.get("priority", "medium"),
+                due_date=due_date,
             )
             db.session.add(task)
             created.append(task)
