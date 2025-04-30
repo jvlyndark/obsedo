@@ -4,7 +4,7 @@ import random
 from datetime import datetime
 
 from flask import Blueprint, jsonify, request
-import openai
+from openai import OpenAI
 
 from app.models import db, Task
 
@@ -103,7 +103,7 @@ def delete_task(task_id):
 
 @bp.route("/generate-tasks", methods=["POST"])
 def generate_tasks_from_goal():
-    openai.api_key = os.getenv("OPENAI_API_KEY")
+    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
     data = request.get_json()
     goal = data.get("goal")
     if not goal:
@@ -134,7 +134,7 @@ Return as JSON in the following format:
 """
 
     try:
-        response = openai.ChatCompletion.create(
+        response = client.chat.completions.create(
             model="gpt-4",
             messages=[
                 {"role": "system", "content": "You are a helpful task planner."},
