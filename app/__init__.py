@@ -1,6 +1,9 @@
 from flask import Flask
 from app.routes import bp as routes_bp
-from app.models import db  # <-- import the database
+from app.models import db
+from dotenv import load_dotenv
+
+load_dotenv()
 
 def create_app():
     app = Flask(__name__)

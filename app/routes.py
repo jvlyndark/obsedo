@@ -1,8 +1,12 @@
-from flask import Blueprint, jsonify, request
+import os
+import json
+import random
 from datetime import datetime
-from app.models import db, Task
 
+from flask import Blueprint, jsonify, request
 import openai
+
+from app.models import db, Task
 
 bp = Blueprint('routes', __name__)
 
@@ -91,6 +95,7 @@ def delete_task(task_id):
 
 @bp.route('/generate-tasks', methods=['POST'])
 def generate_tasks_from_goal():
+    openai.api_key = os.getenv('OPENAI_API_KEY')
     data = request.get_json()
     goal = data.get('goal')
     if not goal:
@@ -151,4 +156,3 @@ Return as JSON in the following format:
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
