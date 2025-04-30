@@ -144,7 +144,11 @@ Return as JSON in the following format:
         )
 
         content = response.choices[0].message.content
-        tasks = json.loads(content)
+
+        try:
+            tasks = json.loads(content)
+        except json.JSONDecodeError:
+            return jsonify({"error": "Failed to parse response from OpenAI"}), 502
 
         created = []
         for item in tasks:
