@@ -1,0 +1,19 @@
+body {
+    font-family: sans-serif;
+    margin: 2rem;
+}
+
+h1 {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+}
+
+input,
+button {
+    padding: 0.5rem;
+    margin: 0.5rem 0;
+}
+
+ul {
+    margin-top: 1rem;
+}

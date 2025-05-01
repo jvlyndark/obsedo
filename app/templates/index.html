@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Obsedo</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+  <h1>Obsedo</h1>
+
+  <form id="goal-form">
+    <input type="text" id="goal" placeholder="Confess your goal..." required>
+    <button type="submit">Submit to Obsedo</button>
+  </form>
+
+  <ul id="task-list"></ul>
+
+  <script>
+    document.getElementById("goal-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const goal = document.getElementById("goal").value;
+      const res = await fetch("/generate-tasks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ goal })
+      });
+
+      const tasks = await res.json();
+      const list = document.getElementById("task-list");
+      list.innerHTML = "";
+
+      tasks.forEach(task => {
+        const li = document.createElement("li");
+        li.textContent = `${task.title} (${task.category}) - ${task.priority}`;
+        list.appendChild(li);
+      });
+    });
+  </script>
+</body>
+</html>

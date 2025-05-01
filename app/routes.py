@@ -11,11 +11,6 @@ from app.models import db, Task
 bp = Blueprint("routes", __name__)
 
 
-@bp.route("/")
-def index():
-    return jsonify({"message": "Welcome to Obsedo"})
-
-
 @bp.route("/tasks", methods=["POST"])
 def create_task():
     data = request.get_json()
