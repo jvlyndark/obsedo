@@ -25,44 +25,58 @@
       >AI task planner coming soon. For now, add tasks manually below.</small
     >
 
+    <h2>Add a Task Manually</h2>
+    <form id="manual-task-form">
+      <input type="text" id="task-title" placeholder="Title" required />
+      <input type="text" id="task-category" placeholder="Category" required />
+      <select id="task-priority">
+        <option value="low">Low</option>
+        <option value="medium" selected>Medium</option>
+        <option value="high">High</option>
+      </select>
+      <input type="date" id="task-due-date" />
+      <button type="submit">Add Task</button>
+    </form>
+
     <ul id="task-list"></ul>
 
     <script>
       const list = document.getElementById("task-list");
 
-      document
-        .getElementById("goal-form")
-        .addEventListener("submit", async (e) => {
-          e.preventDefault();
-          const goal = document.getElementById("goal").value;
-          const res = await fetch("/generate-tasks", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ goal }),
-          });
+      // TODO: Add back OpenAI assistant features
+      // document
+      //   .getElementById("goal-form")
+      //   .addEventListener("submit", async (e) => {
+      //     e.preventDefault();
+      //     const goal = document.getElementById("goal").value;
+      //     const res = await fetch("/generate-tasks", {
+      //       method: "POST",
+      //       headers: { "Content-Type": "application/json" },
+      //       body: JSON.stringify({ goal }),
+      //     });
 
-          const data = await res.json();
-          const list = document.getElementById("task-list");
-          list.innerHTML = "";
+      //     const data = await res.json();
+      //     const list = document.getElementById("task-list");
+      //     list.innerHTML = "";
 
-          if (res.ok && Array.isArray(data)) {
-            data.forEach((task) => {
-              const li = document.createElement("li");
-              li.innerHTML = `
-              <strong>${task.title}</strong><br>
-              <small>Category: ${task.category} | Priority: ${task.priority}</small><br>
-              <button data-id="${task.id}" class="complete-btn">Mark Complete</button>
-              `;
-              list.appendChild(li);
-            });
-          } else {
-            const li = document.createElement("li");
-            li.innerHTML = `<span style="color:red;">Error: ${
-              data.error || "Unknown error"
-            }</span>`;
-            list.appendChild(li);
-          }
-        });
+      //     if (res.ok && Array.isArray(data)) {
+      //       data.forEach((task) => {
+      //         const li = document.createElement("li");
+      //         li.innerHTML = `
+      //         <strong>${task.title}</strong><br>
+      //         <small>Category: ${task.category} | Priority: ${task.priority}</small><br>
+      //         <button data-id="${task.id}" class="complete-btn">Mark Complete</button>
+      //         `;
+      //         list.appendChild(li);
+      //       });
+      //     } else {
+      //       const li = document.createElement("li");
+      //       li.innerHTML = `<span style="color:red;">Error: ${
+      //         data.error || "Unknown error"
+      //       }</span>`;
+      //       list.appendChild(li);
+      //     }
+      //   });
 
       list.addEventListener("click", async (e) => {
         if (e.target.classList.contains("complete-btn")) {
@@ -78,6 +92,39 @@
           }
         }
       });
+    </script>
+    <script>
+      document
+        .getElementById("manual-task-form")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const title = document.getElementById("task-title").value;
+          const category = document.getElementById("task-category").value;
+          const priority = document.getElementById("task-priority").value;
+          const due_date =
+            document.getElementById("task-due-date").value || null;
+
+          const res = await fetch("/tasks", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ title, category, priority, due_date }),
+          });
+
+          const task = await res.json();
+          if (res.ok) {
+            const li = document.createElement("li");
+            li.innerHTML = `
+              <strong>${task.title}</strong><br>
+              <small>Category: ${task.category} | Priority: ${task.priority}</small><br>
+              <button data-id="${task.id}" class="complete-btn">Mark Complete</button>
+            `;
+            document.getElementById("task-list").appendChild(li);
+            e.target.reset(); // Clear form
+          } else {
+            alert("Error: " + (task.error || "Unknown"));
+          }
+        });
     </script>
   </body>
 </html>
