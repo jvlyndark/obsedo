@@ -126,5 +126,29 @@
           }
         });
     </script>
+    <script>
+      async function loadTasks() {
+        const res = await fetch("/tasks");
+        const tasks = await res.json();
+        const list = document.getElementById("task-list");
+        list.innerHTML = "";
+
+        tasks.forEach((task) => {
+          const li = document.createElement("li");
+          li.innerHTML = `
+            <strong>${task.title}</strong><br>
+            <small>Category: ${task.category} | Priority: ${task.priority}</small><br>
+            <button data-id="${task.id}" class="complete-btn">Mark Complete</button>
+          `;
+          if (task.is_completed) {
+            li.style.opacity = 0.4;
+            li.querySelector("button").remove(); // Don't show 'complete' for done tasks
+          }
+          list.appendChild(li);
+        });
+      }
+
+      loadTasks(); // <- run on page load
+    </script>
   </body>
 </html>
