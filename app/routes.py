@@ -98,6 +98,9 @@ def delete_task(task_id):
 
 @bp.route("/generate-tasks", methods=["POST"])
 def generate_tasks_from_goal():
+    return jsonify({"error": "This feature is temporarily disabled."}), 503
+
+    # TODO: Add back OpenAI features after MVP
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
     data = request.get_json()
     goal = data.get("goal")
