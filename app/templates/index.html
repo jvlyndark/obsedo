@@ -7,6 +7,32 @@
       rel="stylesheet"
       href="{{ url_for('static', filename='styles.css') }}"
     />
+    <style>
+      /* Quick spacing and basic styling */
+      body {
+        font-family: sans-serif;
+        max-width: 600px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+      }
+
+      li {
+        margin-bottom: 1.2em;
+        padding: 0.5em;
+        border-bottom: 1px solid #ccc;
+        list-style: none;
+      }
+
+      button {
+        margin-right: 0.5em;
+        cursor: pointer;
+      }
+
+      input,
+      select {
+        margin: 0.3em 0.5em 0.3em 0;
+      }
+    </style>
   </head>
   <body>
     <h1>Obsedo</h1>
@@ -43,41 +69,7 @@
     <script>
       const list = document.getElementById("task-list");
 
-      // TODO: Add back OpenAI assistant features
-      // document
-      //   .getElementById("goal-form")
-      //   .addEventListener("submit", async (e) => {
-      //     e.preventDefault();
-      //     const goal = document.getElementById("goal").value;
-      //     const res = await fetch("/generate-tasks", {
-      //       method: "POST",
-      //       headers: { "Content-Type": "application/json" },
-      //       body: JSON.stringify({ goal }),
-      //     });
-
-      //     const data = await res.json();
-      //     const list = document.getElementById("task-list");
-      //     list.innerHTML = "";
-
-      //     if (res.ok && Array.isArray(data)) {
-      //       data.forEach((task) => {
-      //         const li = document.createElement("li");
-      //         li.innerHTML = `
-      //         <strong>${task.title}</strong><br>
-      //         <small>Category: ${task.category} | Priority: ${task.priority}</small><br>
-      //         <button data-id="${task.id}" class="complete-btn">Mark Complete</button>
-      //         `;
-      //         list.appendChild(li);
-      //       });
-      //     } else {
-      //       const li = document.createElement("li");
-      //       li.innerHTML = `<span style="color:red;">Error: ${
-      //         data.error || "Unknown error"
-      //       }</span>`;
-      //       list.appendChild(li);
-      //     }
-      //   });
-
+      // Task complete
       list.addEventListener("click", async (e) => {
         if (e.target.classList.contains("complete-btn")) {
           const taskId = e.target.getAttribute("data-id");
@@ -94,8 +86,30 @@
           }
         }
       });
-    </script>
-    <script>
+
+      // Task delete
+      list.addEventListener("click", async (e) => {
+        if (e.target.classList.contains("delete-btn")) {
+          const taskId = e.target.getAttribute("data-id");
+
+          const confirmed = confirm(
+            "Are you sure you want to delete this task?"
+          );
+          if (!confirmed) return;
+
+          const res = await fetch(`/tasks/${taskId}`, {
+            method: "DELETE",
+          });
+
+          if (res.ok) {
+            e.target.parentElement.remove();
+          } else {
+            alert("Failed to delete task.");
+          }
+        }
+      });
+
+      // Manual task add
       document
         .getElementById("manual-task-form")
         .addEventListener("submit", async (e) => {
@@ -120,37 +134,47 @@
               <strong>${task.title}</strong><br>
               <small>Category: ${task.category} | Priority: ${task.priority}</small><br>
               <button data-id="${task.id}" class="complete-btn">Mark Complete</button>
+              <button data-id="${task.id}" class="delete-btn">Delete</button>
             `;
-            document.getElementById("task-list").appendChild(li);
-            e.target.reset(); // Clear form
+            list.appendChild(li);
+            e.target.reset();
           } else {
             alert("Error: " + (task.error || "Unknown"));
           }
         });
-    </script>
-    <script>
+
+      // Load tasks
       async function loadTasks() {
         const res = await fetch("/tasks");
         const tasks = await res.json();
-        const list = document.getElementById("task-list");
         list.innerHTML = "";
 
         tasks.forEach((task) => {
           const li = document.createElement("li");
           li.innerHTML = `
             <strong>${task.title}</strong><br>
-            <small>Category: ${task.category} | Priority: ${task.priority}</small><br>
-            <button data-id="${task.id}" class="complete-btn">Mark Complete</button>
+            <small>Category: ${task.category} | Priority: ${
+            task.priority
+          }</small><br>
+            ${
+              task.is_completed
+                ? ""
+                : `<button data-id="${task.id}" class="complete-btn">Mark Complete</button>`
+            }
+            <button data-id="${task.id}" class="delete-btn">Delete</button>
           `;
+
           if (task.is_completed) {
             li.style.opacity = 0.4;
-            li.querySelector("button").remove(); // Don't show 'complete' for done tasks
+            const completeBtn = li.querySelector(".complete-btn");
+            if (completeBtn) completeBtn.remove();
           }
+
           list.appendChild(li);
         });
       }
 
-      loadTasks(); // <- run on page load
+      loadTasks();
     </script>
   </body>
 </html>
