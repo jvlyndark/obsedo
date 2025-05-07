@@ -61,5 +61,6 @@ See ./LICENSE for details.
 
 ## ✉️ Contact
 
-Ursula J. d'Ark - ursulajdark at gmail dot com
-Project Link: https://github.com/jvlyndark/obsedo
+#### Ursula J. d'Ark - ursulajdark at gmail dot com
+
+#### Project Link: https://github.com/jvlyndark/obsedo
