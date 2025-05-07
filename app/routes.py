@@ -4,7 +4,8 @@ import random
 from datetime import datetime
 
 from flask import Blueprint, jsonify, request
-from openai import OpenAI
+
+# from openai import OpenAI  # TODO: Re-enable when AI features are live
 
 from app.models import db, Task
 
