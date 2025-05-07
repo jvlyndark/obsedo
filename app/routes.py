@@ -68,8 +68,6 @@ def get_random_task():
     if not tasks:
         return jsonify({"message": "No available tasks."}), 404
 
-    import random
-
     task = random.choice(tasks)
     return jsonify(task.serialize()), 200
 
@@ -101,72 +99,74 @@ def generate_tasks_from_goal():
     return jsonify({"error": "This feature is temporarily disabled."}), 503
 
     # TODO: Add back OpenAI features after MVP
-    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-    data = request.get_json()
-    goal = data.get("goal")
-    model = data.get("model", "gpt-3.5-turbo-0125")
-    temperature = data.get("temperature", 0.7)
-    max_tasks = data.get("max_tasks", 5)
+    # --- FUTURE: OpenAI task generation ---
+    if False:
+        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        data = request.get_json()
+        goal = data.get("goal")
+        model = data.get("model", "gpt-3.5-turbo-0125")
+        temperature = data.get("temperature", 0.7)
+        max_tasks = data.get("max_tasks", 5)
 
-    if not goal:
-        return jsonify({"error": "Missing 'goal' in request body"}), 400
+        if not goal:
+            return jsonify({"error": "Missing 'goal' in request body"}), 400
 
-    prompt = f"""
-        You're an intelligent task manager. The user wants to achieve the following goal:
+        prompt = f"""
+            You're an intelligent task manager. The user wants to achieve the following goal:
 
-        "{goal}"
+            "{goal}"
 
-        Break it down into {max_tasks} concrete tasks. For each task, return:
-        - title
-        - category (e.g. focus, admin, travel, social)
-        - priority (low, medium, high)
-        - optional due date (in ISO 8601 format, or null if none)
+            Break it down into {max_tasks} concrete tasks. For each task, return:
+            - title
+            - category (e.g. focus, admin, travel, social)
+            - priority (low, medium, high)
+            - optional due date (in ISO 8601 format, or null if none)
 
-        Return as JSON in the following format:
+            Return as JSON in the following format:
 
-        [
-        {{
-            "title": "...",
-            "category": "...",
-            "priority": "...",
-            "due_date": "..." or null
-        }},
-        ...
-        ]
-        """
-
-    try:
-        response = client.chat.completions.create(
-            model=model,
-            messages=[
-                {"role": "system", "content": "You are a helpful task planner."},
-                {"role": "user", "content": prompt},
-            ],
-            temperature=temperature,
-        )
-
-        content = response.choices[0].message.content
+            [
+            {{
+                "title": "...",
+                "category": "...",
+                "priority": "...",
+                "due_date": "..." or null
+            }},
+            ...
+            ]
+            """
 
         try:
-            tasks = json.loads(content)
-        except json.JSONDecodeError:
-            return jsonify({"error": "Failed to parse response from OpenAI"}), 502
-
-        created = []
-        for item in tasks:
-            due = item.get("due_date")
-            due_date = datetime.fromisoformat(due) if due else None
-            task = Task(
-                title=item["title"],
-                category=item["category"],
-                priority=item.get("priority", "medium"),
-                due_date=due_date,
+            response = client.chat.completions.create(
+                model=model,
+                messages=[
+                    {"role": "system", "content": "You are a helpful task planner."},
+                    {"role": "user", "content": prompt},
+                ],
+                temperature=temperature,
             )
-            db.session.add(task)
-            created.append(task)
 
-        db.session.commit()
-        return jsonify([t.serialize() for t in created]), 201
+            content = response.choices[0].message.content
 
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+            try:
+                tasks = json.loads(content)
+            except json.JSONDecodeError:
+                return jsonify({"error": "Failed to parse response from OpenAI"}), 502
+
+            created = []
+            for item in tasks:
+                due = item.get("due_date")
+                due_date = datetime.fromisoformat(due) if due else None
+                task = Task(
+                    title=item["title"],
+                    category=item["category"],
+                    priority=item.get("priority", "medium"),
+                    due_date=due_date,
+                )
+                db.session.add(task)
+                created.append(task)
+
+            db.session.commit()
+            return jsonify([t.serialize() for t in created]), 201
+
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
