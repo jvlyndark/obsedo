@@ -32,3 +32,34 @@ git clone https://github.com/jvlyndark/obsedo.git
 cd obsedo
 docker-compose up --build
 ```
+
+Then visit http://localhost:5001 in your browser.
+
+### 💻 Run Locally Without Docker (Optional)
+
+Only do this if you want to run the code without containers:
+
+```bash
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+flask run
+```
+
+You'll need Python 3.11+ installed. This is mainly useful for debugging or development.
+
+## 🧩 Roadmap
+
+- AI-powered task generation (OpenAI)
+- GitHub Actions CI pipeline
+- Terraform + AWS deployment
+
+## 📄 License
+
+This project is licensed under the MIT License.
+See ./LICENSE for details.
+
+## ✉️ Contact
+
+Ursula J. d'Ark - ursulajdark at gmail dot com
+Project Link: https://github.com/jvlyndark/obsedo
