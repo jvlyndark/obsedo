@@ -50,14 +50,50 @@ You'll need Python 3.11+ installed. This is mainly useful for debugging or devel
 
 ## 🧩 Roadmap
 
-- AI-powered task generation (OpenAI)
-- GitHub Actions CI pipeline
-- Terraform + AWS deployment
+- [ ] Add OpenAI-powered task planning
+- [x] Add GitHub Actions CI
+- [ ] Add unit tests for Flask routes
+- [ ] Deploy with Terraform + AWS
 
 ## 📄 License
 
 This project is licensed under the MIT License.
 See ./LICENSE for details.
+
+---
+
+## 🧪 Running Tests
+
+To run tests locally:
+
+```bash
+pytest tests/
+```
+
+Make sure `pytest` is installed:
+
+```bash
+pip install pytest
+```
+
+---
+
+## 🔁 GitHub Actions: Lint + Test
+
+Tests and flake8 linting are automatically run on every push. CI is defined in `.github/workflows/ci.yml`.
+
+---
+
+## ☁️ Deploy to AWS with Terraform (Coming Soon)
+
+We're setting up deployment infrastructure using:
+
+- **Terraform** for infra-as-code
+- **AWS ECS** for container hosting
+- **S3** for static files (optional)
+- **GitHub Actions** for CI/CD
+
+Steps will be added as this infrastructure is developed.
 
 ## ✉️ Contact
 

@@ -1,1 +1,28 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+*.log
+
+# Env & Secrets
 .env
+*.pem
+*.key
+*.crt
+
+# Terraform
+infra/.terraform/
+infra/terraform.tfstate*
+infra/terraform.tfvars
+infra/crash.log
+
+# Keys
+infra/obsedo_key.pem*
+infra/obsedo_key*
+
+# Docker
+*.pid
+*.sock
+docker-compose.override.yml

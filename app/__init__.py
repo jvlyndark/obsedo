@@ -6,9 +6,12 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-def create_app():
+def create_app(test_config=None):
     app = Flask(__name__)
-    app.config.from_object("app.config.Config")
+    if test_config:
+        app.config.update(test_config)
+    else:
+        app.config.from_object("app.config.Config")
     app.register_blueprint(routes_bp)
 
     db.init_app(app)  # <-- initialize database
