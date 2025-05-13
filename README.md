@@ -50,10 +50,14 @@ You'll need Python 3.11+ installed. This is mainly useful for debugging or devel
 
 ## 🧩 Roadmap
 
-- [ ] Add OpenAI-powered task planning
+- [x] Add OpenAI-powered task planning
 - [x] Add GitHub Actions CI
-- [ ] Add unit tests for Flask routes
-- [ ] Deploy with Terraform + AWS
+- [x] Add unit tests for Flask routes
+- [x] Deploy with Terraform + AWS
+- [ ] Allow users to provide their own OpenAI key client-side
+- [ ] Add filtering + sorting (priority, category, completion)
+- [ ] Responsive UI redesign (mobile & dark mode)
+- [ ] Add task editing
 
 ## 📄 License
 
@@ -84,14 +88,38 @@ Tests and flake8 linting are automatically run on every push. CI is defined in `
 
 ---
 
-## ☁️ Deploy to AWS with Terraform (Coming Soon)
+### 🤖 AI-Powered Task Planning (Optional)
 
-We're setting up deployment infrastructure using:
+Obsedo supports OpenAI integration for automatic task breakdown.
+
+Just enter a goal like:
+
+> "Plan a trip to Berlin"
+
+Obsedo will generate actionable tasks using GPT-3.5.
+
+To enable:
+
+1. Get an [OpenAI API key](https://platform.openai.com/account/api-keys)
+2. Set it in your `.env` file:
+   OPENAI_API_KEY=your-key-here
+
+If no key is set, the feature is disabled gracefully.
+
+---
+
+## ☁️ Deploy to AWS with Terraform
+
+Obsedo is fully deployable to the cloud using:
 
 - **Terraform** for infra-as-code
-- **AWS ECS** for container hosting
-- **S3** for static files (optional)
-- **GitHub Actions** for CI/CD
+- **AWS EC2** for hosting
+- **Docker Compose** for service management
+- **GitHub Actions** for CI/CD (Terraform apply coming soon)
+
+You can find Terraform config under `/infra`.
+
+Deployment spins up an EC2 instance, installs Docker, and launches the app via `docker-compose`.
 
 Steps will be added as this infrastructure is developed.
 
