@@ -37,19 +37,19 @@
   <body>
     <h1>Obsedo</h1>
 
-    <!-- Future feature: AI-powered task planning -->
-    <form id="goal-form" style="opacity: 0.4" disabled>
+    <!-- AI-powered task planning -->
+    <form id="goal-form">
       <input
         type="text"
         id="goal"
         placeholder="Confess your goal..."
-        disabled
+        required
       />
-      <button type="submit" disabled>Submit to Obsedo</button>
+      <button type="submit">Submit to Obsedo</button>
     </form>
-    <small style="color: gray"
-      >AI task planner coming soon. For now, add tasks manually below.</small
-    >
+    <small id="goal-hint" style="color: gray">
+      Enter a goal to break it into tasks using OpenAI.
+    </small>
 
     <h2>Add a Task Manually</h2>
     <form id="manual-task-form">
@@ -175,6 +175,46 @@
       }
 
       loadTasks();
+
+      // Generate tasks
+      document
+        .getElementById("goal-form")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const goal = document.getElementById("goal").value;
+          const hint = document.getElementById("goal-hint");
+          hint.textContent = "Planning...";
+
+          try {
+            const res = await fetch("/generate-tasks", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ goal }),
+            });
+
+            const data = await res.json();
+            list.innerHTML = "";
+
+            if (res.ok && Array.isArray(data)) {
+              data.forEach((task) => {
+                const li = document.createElement("li");
+                li.innerHTML = `
+            <strong>${task.title}</strong><br>
+            <small>Category: ${task.category} | Priority: ${task.priority}</small><br>
+            <button data-id="${task.id}" class="complete-btn">Mark Complete</button>
+            <button data-id="${task.id}" class="delete-btn">Delete</button>
+          `;
+                list.appendChild(li);
+              });
+              hint.textContent = "Tasks added!";
+            } else {
+              hint.textContent =
+                "OpenAI error: " + (data.error || "Unknown failure");
+            }
+          } catch (err) {
+            hint.textContent = "Something went wrong.";
+          }
+        });
     </script>
   </body>
 </html>
