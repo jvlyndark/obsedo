@@ -8,48 +8,92 @@
       href="{{ url_for('static', filename='styles.css') }}"
     />
     <style>
-      /* Quick spacing and basic styling */
       body {
-        font-family: sans-serif;
-        max-width: 600px;
+        font-family: system-ui, sans-serif;
+        max-width: 700px;
         margin: 2rem auto;
-        padding: 0 1rem;
+        padding: 1rem;
+        background-color: #f8f9fa;
+        color: #222;
       }
 
-      li {
-        margin-bottom: 1.2em;
-        padding: 0.5em;
-        border-bottom: 1px solid #ccc;
-        list-style: none;
+      h1,
+      h2 {
+        color: #1d3557;
+        margin-bottom: 0.5rem;
       }
 
-      button {
-        margin-right: 0.5em;
-        cursor: pointer;
+      form {
+        margin-bottom: 2rem;
       }
 
       input,
-      select {
-        margin: 0.3em 0.5em 0.3em 0;
+      select,
+      button {
+        padding: 0.5em;
+        margin: 0.5em 0.25em 0.5em 0;
+        font-size: 1rem;
+      }
+
+      button {
+        background: #1d3557;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+      }
+
+      button:hover {
+        background: #1f1a67;
+      }
+
+      ul#task-list {
+        padding: 0;
+      }
+
+      ul#task-list li {
+        background: white;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        margin-bottom: 1rem;
+        padding: 1rem;
+        list-style: none;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      }
+
+      #experimental-wrapper {
+        margin-top: 3rem;
+        padding-top: 2rem;
+        border-top: 1px dashed #ccc;
+      }
+
+      .ai-label {
+        font-weight: bold;
+        font-size: 1.1em;
+        color: #e63946;
+      }
+
+      .ai-note {
+        font-size: 0.9em;
+        color: #666;
+        margin-bottom: 1rem;
+      }
+
+      #goal-form input {
+        width: 60%;
+        margin-right: 0.5em;
+      }
+
+      #goal-form button {
+        background-color: #e63946;
+      }
+
+      #goal-form button:hover {
+        background-color: #d62839;
       }
     </style>
   </head>
   <body>
     <h1>Obsedo</h1>
-
-    <!-- AI-powered task planning -->
-    <form id="goal-form">
-      <input
-        type="text"
-        id="goal"
-        placeholder="Confess your goal..."
-        required
-      />
-      <button type="submit">Submit to Obsedo</button>
-    </form>
-    <small id="goal-hint" style="color: gray">
-      Enter a goal to break it into tasks using OpenAI.
-    </small>
 
     <h2>Add a Task Manually</h2>
     <form id="manual-task-form">
@@ -65,6 +109,25 @@
     </form>
 
     <ul id="task-list"></ul>
+
+    <div id="experimental-wrapper">
+      <p class="ai-label">🧠 Experimental: AI Task Generator</p>
+      <p class="ai-note">
+        This feature is disabled in the public demo for security reasons.<br />
+        To try it locally, clone the repo and add your OpenAI key to a `.env`
+        file.
+      </p>
+      <form id="goal-form">
+        <input
+          type="text"
+          id="goal"
+          placeholder="Confess your goal..."
+          required
+        />
+        <button type="submit">Submit to Obsedo</button>
+      </form>
+      <small id="goal-hint" style="color: gray"></small>
+    </div>
 
     <script>
       const list = document.getElementById("task-list");
@@ -193,7 +256,6 @@
             });
 
             const data = await res.json();
-            list.innerHTML = "";
 
             if (res.ok && Array.isArray(data)) {
               data.forEach((task) => {

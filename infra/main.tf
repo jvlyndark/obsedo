@@ -19,10 +19,10 @@ resource "aws_security_group" "obsedo_sg" {
   }
 
   ingress {
-    from_port   = 5001
-    to_port     = 5001
+    from_port   = 80
+    to_port     = 80
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # Obsedo port
+    cidr_blocks = ["0.0.0.0/0"] # HTTP for domain access
   }
 
   egress {
