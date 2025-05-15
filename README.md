@@ -1,6 +1,20 @@
 # Obsedo
 
-Obsedo is a minimalist personal task manager built with Flask, Docker, and SQLite.
+> Minimalist, AI-optional task manager – built to showcase fullstack deployment and infrastructure automation.
+
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-obsedo.jvlyndark.com-blue?style=flat-square)](http://obsedo.jvlyndark.com)
+
+Obsedo is a fast, clean task manager built from scratch using Python, Flask, Docker, Terraform, and AWS. Designed as a developer portfolio project, it demonstrates backend development, DevOps workflows, infrastructure-as-code, CI, and cloud deployment. OpenAI integration is included as an optional module.
+
+---
+
+### 🛠️ Core Technologies
+
+- **Backend**: Python, Flask, SQLAlchemy
+- **DevOps**: Docker, Docker Compose, GitHub Actions
+- **Infrastructure**: Terraform, AWS EC2
+- **Frontend**: HTML, CSS, Vanilla JS
+- **Optional**: OpenAI GPT integration via `.env`
 
 ### ✨ Core Features
 
@@ -8,13 +22,6 @@ Obsedo is a minimalist personal task manager built with Flask, Docker, and SQLit
 - Mark tasks as complete
 - Track priority, category, and optional due dates
 - Clean interface with real-time updates
-
-### 🛠️ Tech Stack
-
-- **Backend:** Python + Flask + SQLAlchemy
-- **Frontend:** HTML + Vanilla JS
-- **Database:** SQLite (dev), with optional cloud upgrade planned
-- **Infrastructure:** Docker + Docker Compose
 
 ---
 
