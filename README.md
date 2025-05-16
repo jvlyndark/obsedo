@@ -40,7 +40,7 @@ cd obsedo
 docker-compose up --build
 ```
 
-Then visit http://localhost:5001 in your browser.
+Then visit http://localhost:80 in your browser.
 
 ### 💻 Run Locally Without Docker (Optional)
 
@@ -57,14 +57,25 @@ You'll need Python 3.11+ installed. This is mainly useful for debugging or devel
 
 ## 🧩 Roadmap
 
+### Completed
+
 - [x] Add OpenAI-powered task planning
 - [x] Add GitHub Actions CI
 - [x] Add unit tests for Flask routes
 - [x] Deploy with Terraform + AWS
-- [ ] Allow users to provide their own OpenAI key client-side
+
+### In progress
+
+- [ ] Client-side support for user-supplied OpenAI keys
 - [ ] Add filtering + sorting (priority, category, completion)
 - [ ] Responsive UI redesign (mobile & dark mode)
 - [ ] Add task editing
+
+### Under Consideration
+
+- [ ] User authentication
+- [ ] PostreSQL for production
+- [ ] Serverless deployment for ECS
 
 ## 📄 License
 
@@ -129,6 +140,8 @@ You can find Terraform config under `/infra`.
 Deployment spins up an EC2 instance, installs Docker, and launches the app via `docker-compose`.
 
 Steps will be added as this infrastructure is developed.
+
+---
 
 ## ✉️ Contact
 
