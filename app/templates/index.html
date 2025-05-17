@@ -90,6 +90,15 @@
       #goal-form button:hover {
         background-color: #d62839;
       }
+
+      #filters {
+        margin: 1.5rem 0;
+      }
+
+      #filters select {
+        margin-right: 0.5rem;
+        padding: 0.4em;
+      }
     </style>
   </head>
   <body>
@@ -107,6 +116,26 @@
       <input type="date" id="task-due-date" />
       <button type="submit">Add Task</button>
     </form>
+
+    <h3>Filter Tasks</h3>
+    <div id="filters">
+      <select id="filter-priority">
+        <option value="">All Priorities</option>
+        <option value="low">Low</option>
+        <option value="medium">Medium</option>
+        <option value="high">High</option>
+      </select>
+
+      <select id="filter-category">
+        <option value="">All Categories</option>
+      </select>
+
+      <select id="filter-completed">
+        <option value="">All</option>
+        <option value="false">Incomplete</option>
+        <option value="true">Completed</option>
+      </select>
+    </div>
 
     <ul id="task-list"></ul>
 
@@ -199,42 +228,74 @@
               <button data-id="${task.id}" class="complete-btn">Mark Complete</button>
               <button data-id="${task.id}" class="delete-btn">Delete</button>
             `;
-            list.appendChild(li);
+            await loadTasks();
+            applyFilters();
             e.target.reset();
           } else {
             alert("Error: " + (task.error || "Unknown"));
           }
         });
 
+      let allTasks = [];
+
+      function applyFilters() {
+        const priority = document.getElementById("filter-priority").value;
+        const category = document.getElementById("filter-category").value;
+        const completed = document.getElementById("filter-completed").value;
+
+        const filtered = allTasks.filter((task) => {
+          return (
+            (!priority || task.priority === priority) &&
+            (!category || task.category === category) &&
+            (!completed || task.is_completed.toString() === completed)
+          );
+        });
+
+        renderTaskList(filtered);
+      }
+
+      function renderTaskList(tasks) {
+        list.innerHTML = "";
+        tasks.forEach((task) => {
+          const li = document.createElement("li");
+          li.innerHTML = `
+      <strong>${task.title}</strong><br>
+      <small>Category: ${task.category} | Priority: ${task.priority}</small><br>
+      ${
+        task.is_completed
+          ? ""
+          : `<button data-id="${task.id}" class="complete-btn">Mark Complete</button>`
+      }
+      <button data-id="${task.id}" class="delete-btn">Delete</button>
+    `;
+          if (task.is_completed) li.style.opacity = 0.4;
+          list.appendChild(li);
+        });
+      }
+
+      function populateCategoryFilter(tasks) {
+        const select = document.getElementById("filter-category");
+        const categories = [...new Set(tasks.map((t) => t.category))].sort();
+        select.innerHTML = `<option value="">All Categories</option>`;
+        categories.forEach((cat) => {
+          const opt = document.createElement("option");
+          opt.value = cat;
+          opt.textContent = cat;
+          select.appendChild(opt);
+        });
+      }
+
+      ["filter-priority", "filter-category", "filter-completed"].forEach((id) =>
+        document.getElementById(id).addEventListener("change", applyFilters)
+      );
+
       // Load tasks
       async function loadTasks() {
         const res = await fetch("/tasks");
         const tasks = await res.json();
-        list.innerHTML = "";
-
-        tasks.forEach((task) => {
-          const li = document.createElement("li");
-          li.innerHTML = `
-            <strong>${task.title}</strong><br>
-            <small>Category: ${task.category} | Priority: ${
-            task.priority
-          }</small><br>
-            ${
-              task.is_completed
-                ? ""
-                : `<button data-id="${task.id}" class="complete-btn">Mark Complete</button>`
-            }
-            <button data-id="${task.id}" class="delete-btn">Delete</button>
-          `;
-
-          if (task.is_completed) {
-            li.style.opacity = 0.4;
-            const completeBtn = li.querySelector(".complete-btn");
-            if (completeBtn) completeBtn.remove();
-          }
-
-          list.appendChild(li);
-        });
+        allTasks = tasks;
+        renderTaskList(tasks);
+        populateCategoryFilter(tasks);
       }
 
       loadTasks();
