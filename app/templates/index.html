@@ -137,6 +137,8 @@
       </select>
     </div>
 
+    <div id="filter-summary" style="margin-bottom: 1rem; color: #555"></div>
+
     <ul id="task-list"></ul>
 
     <div id="experimental-wrapper">
@@ -252,6 +254,26 @@
         });
 
         renderTaskList(filtered);
+        updateFilterSummary();
+      }
+
+      function updateFilterSummary() {
+        const priority = document.getElementById("filter-priority").value;
+        const category = document.getElementById("filter-category").value;
+        const completed = document.getElementById("filter-completed").value;
+
+        const parts = [];
+        if (priority) parts.push(`Priority: ${priority}`);
+        if (category) parts.push(`Category: ${category}`);
+        if (completed)
+          parts.push(
+            `Status: ${completed === "true" ? "Completed" : "Incomplete"}`
+          );
+
+        const summary = parts.length
+          ? `Showing: ${parts.join(" • ")}`
+          : "Showing: All tasks";
+        document.getElementById("filter-summary").textContent = summary;
       }
 
       function renderTaskList(tasks) {
