@@ -63,13 +63,13 @@ You'll need Python 3.11+ installed. This is mainly useful for debugging or devel
 - [x] Add GitHub Actions CI
 - [x] Add unit tests for Flask routes
 - [x] Deploy with Terraform + AWS
+- [x] Add task editing
+- [x] Add filtering + sorting (priority, category, completion)
 
 ### In progress
 
 - [ ] Client-side support for user-supplied OpenAI keys
-- [ ] Add filtering + sorting (priority, category, completion)
 - [ ] Responsive UI redesign (mobile & dark mode)
-- [ ] Add task editing
 
 ### Under Consideration
 
