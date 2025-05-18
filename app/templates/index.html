@@ -225,11 +225,11 @@
           if (res.ok) {
             const li = document.createElement("li");
             li.innerHTML = `
-              <strong>${task.title}</strong><br>
-              <small>Category: ${task.category} | Priority: ${task.priority}</small><br>
-              <button data-id="${task.id}" class="complete-btn">Mark Complete</button>
-              <button data-id="${task.id}" class="delete-btn">Delete</button>
-            `;
+                    <strong class="editable-title" data-id="${task.id}">${task.title}</strong><br>
+                    <small>Category: ${task.category} | Priority: ${task.priority}</small><br>
+                    <button data-id="${task.id}" class="complete-btn">Mark Complete</button>
+                    <button data-id="${task.id}" class="delete-btn">Delete</button>
+                  `;
             await loadTasks();
             applyFilters();
             e.target.reset();
@@ -281,15 +281,20 @@
         tasks.forEach((task) => {
           const li = document.createElement("li");
           li.innerHTML = `
-      <strong>${task.title}</strong><br>
-      <small>Category: ${task.category} | Priority: ${task.priority}</small><br>
-      ${
-        task.is_completed
-          ? ""
-          : `<button data-id="${task.id}" class="complete-btn">Mark Complete</button>`
-      }
-      <button data-id="${task.id}" class="delete-btn">Delete</button>
-    `;
+          <strong class="editable-title" data-id="${task.id}">${
+            task.title
+          }</strong><br>
+            <small>Category: ${task.category} | Priority: ${
+            task.priority
+          }</small><br>
+            <button class="edit-btn" data-id="${task.id}">Edit</button>
+            ${
+              task.is_completed
+                ? ""
+                : `<button data-id="${task.id}" class="complete-btn">Mark Complete</button>`
+            }
+            <button data-id="${task.id}" class="delete-btn">Delete</button>
+          `;
           if (task.is_completed) li.style.opacity = 0.4;
           list.appendChild(li);
         });
@@ -344,11 +349,11 @@
               data.forEach((task) => {
                 const li = document.createElement("li");
                 li.innerHTML = `
-            <strong>${task.title}</strong><br>
-            <small>Category: ${task.category} | Priority: ${task.priority}</small><br>
-            <button data-id="${task.id}" class="complete-btn">Mark Complete</button>
-            <button data-id="${task.id}" class="delete-btn">Delete</button>
-          `;
+                  <strong>${task.title}</strong><br>
+                  <small>Category: ${task.category} | Priority: ${task.priority}</small><br>
+                  <button data-id="${task.id}" class="complete-btn">Mark Complete</button>
+                  <button data-id="${task.id}" class="delete-btn">Delete</button>
+                `;
                 list.appendChild(li);
               });
               hint.textContent = "Tasks added!";
@@ -360,6 +365,51 @@
             hint.textContent = "Something went wrong.";
           }
         });
+
+      list.addEventListener("click", (e) => {
+        if (!e.target.classList.contains("edit-btn")) return;
+
+        const taskId = e.target.getAttribute("data-id");
+        const titleEl = e.target.parentElement.querySelector(".editable-title");
+        if (!titleEl) return;
+
+        const currentText = titleEl.textContent;
+
+        const input = document.createElement("input");
+        input.type = "text";
+        input.value = currentText;
+        input.style.fontWeight = "bold";
+        input.style.fontSize = "1em";
+        input.style.marginBottom = "0.5em";
+
+        titleEl.replaceWith(input);
+        input.focus();
+
+        input.addEventListener("blur", async () => {
+          const newTitle = input.value.trim();
+          if (newTitle && newTitle !== currentText) {
+            const res = await fetch(`/tasks/${taskId}`, {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ title: newTitle }),
+            });
+
+            if (res.ok) {
+              await loadTasks();
+              applyFilters();
+            } else {
+              alert("Failed to update task title.");
+              input.replaceWith(titleEl); // revert
+            }
+          } else {
+            input.replaceWith(titleEl); // revert if unchanged or empty
+          }
+        });
+
+        input.addEventListener("keydown", (eKey) => {
+          if (eKey.key === "Enter") input.blur();
+        });
+      });
     </script>
   </body>
 </html>

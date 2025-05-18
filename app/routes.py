@@ -71,6 +71,18 @@ def get_random_task():
     return jsonify(task.serialize()), 200
 
 
+@bp.route("/tasks/<int:task_id>", methods=["PATCH"])
+def update_task(task_id):
+    task = Task.query.get_or_404(task_id)
+    data = request.get_json()
+
+    if "title" in data:
+        task.title = data["title"]
+
+    db.session.commit()
+    return jsonify(task.serialize())
+
+
 @bp.route("/tasks/<int:task_id>/complete", methods=["PATCH"])
 def complete_task(task_id):
     task = Task.query.get(task_id)
