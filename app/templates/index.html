@@ -16,17 +16,14 @@
         background-color: #f8f9fa;
         color: #222;
       }
-
       h1,
       h2 {
         color: #1d3557;
         margin-bottom: 0.5rem;
       }
-
       form {
         margin-bottom: 2rem;
       }
-
       input,
       select,
       button {
@@ -34,22 +31,18 @@
         margin: 0.5em 0.25em 0.5em 0;
         font-size: 1rem;
       }
-
       button {
         background: #1d3557;
         color: #fff;
         border: none;
         border-radius: 4px;
       }
-
       button:hover {
         background: #1f1a67;
       }
-
       ul#task-list {
         padding: 0;
       }
-
       ul#task-list li {
         background: white;
         border: 1px solid #ccc;
@@ -59,42 +52,34 @@
         list-style: none;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
       }
-
       #experimental-wrapper {
         margin-top: 3rem;
         padding-top: 2rem;
         border-top: 1px dashed #ccc;
       }
-
       .ai-label {
         font-weight: bold;
         font-size: 1.1em;
         color: #e63946;
       }
-
       .ai-note {
         font-size: 0.9em;
         color: #666;
         margin-bottom: 1rem;
       }
-
       #goal-form input {
         width: 60%;
         margin-right: 0.5em;
       }
-
       #goal-form button {
         background-color: #e63946;
       }
-
       #goal-form button:hover {
         background-color: #d62839;
       }
-
       #filters {
         margin: 1.5rem 0;
       }
-
       #filters select {
         margin-right: 0.5rem;
         padding: 0.4em;
@@ -125,11 +110,9 @@
         <option value="medium">Medium</option>
         <option value="high">High</option>
       </select>
-
       <select id="filter-category">
         <option value="">All Categories</option>
       </select>
-
       <select id="filter-completed">
         <option value="">All</option>
         <option value="false">Incomplete</option>
@@ -138,7 +121,6 @@
     </div>
 
     <div id="filter-summary" style="margin-bottom: 1rem; color: #555"></div>
-
     <ul id="task-list"></ul>
 
     <div id="experimental-wrapper">
@@ -162,53 +144,79 @@
 
     <script>
       const list = document.getElementById("task-list");
+      let allTasks = [];
 
-      // Task complete
-      list.addEventListener("click", async (e) => {
-        if (e.target.classList.contains("complete-btn")) {
-          const taskId = e.target.getAttribute("data-id");
+      async function loadTasks() {
+        const res = await fetch("/tasks");
+        allTasks = await res.json();
+        renderTaskList(allTasks);
+        populateCategoryFilter(allTasks);
+      }
 
-          const res = await fetch(`/tasks/${taskId}/complete`, {
-            method: "PATCH",
-          });
+      function applyFilters() {
+        const priority = document.getElementById("filter-priority").value;
+        const category = document.getElementById("filter-category").value;
+        const completed = document.getElementById("filter-completed").value;
 
-          if (res.ok) {
-            e.target.parentElement.style.opacity = 0.4;
-            e.target.remove();
-          } else {
-            alert("Failed to mark task complete.");
-          }
-        }
-      });
+        const filtered = allTasks.filter(
+          (t) =>
+            (!priority || t.priority === priority) &&
+            (!category || t.category === category) &&
+            (!completed || t.is_completed.toString() === completed)
+        );
+        renderTaskList(filtered);
+        updateFilterSummary(priority, category, completed);
+      }
 
-      // Task delete
-      list.addEventListener("click", async (e) => {
-        if (e.target.classList.contains("delete-btn")) {
-          const taskId = e.target.getAttribute("data-id");
-
-          const confirmed = confirm(
-            "Are you sure you want to delete this task?"
+      function updateFilterSummary(priority, category, completed) {
+        const parts = [];
+        if (priority) parts.push(`Priority: ${priority}`);
+        if (category) parts.push(`Category: ${category}`);
+        if (completed)
+          parts.push(
+            `Status: ${completed === "true" ? "Completed" : "Incomplete"}`
           );
-          if (!confirmed) return;
+        document.getElementById("filter-summary").textContent = parts.length
+          ? `Showing: ${parts.join(" • ")}`
+          : "Showing: All tasks";
+      }
 
-          const res = await fetch(`/tasks/${taskId}`, {
-            method: "DELETE",
-          });
+      function renderTaskList(tasks) {
+        list.innerHTML = "";
+        tasks.forEach((task) => {
+          const li = document.createElement("li");
+          li.innerHTML = `
+            <strong class="task-title">${task.title}</strong><br>
+            <small>
+              Category: <span class="task-category">${task.category}</span> |
+              Priority: <span class="task-priority">${task.priority}</span> |
+              Due: <span class="task-due">${task.due_date || "None"}</span>
+            </small><br>
+            ${
+              task.is_completed
+                ? ""
+                : `<button data-id="${task.id}" class="complete-btn">Mark Complete</button>`
+            }
+            <button data-id="${task.id}" class="edit-btn">Edit</button>
+            <button data-id="${task.id}" class="delete-btn">Delete</button>
+          `;
+          if (task.is_completed) li.style.opacity = 0.4;
+          list.appendChild(li);
+        });
+      }
 
-          if (res.ok) {
-            e.target.parentElement.remove();
-          } else {
-            alert("Failed to delete task.");
-          }
-        }
-      });
+      function populateCategoryFilter(tasks) {
+        const select = document.getElementById("filter-category");
+        const categories = [...new Set(tasks.map((t) => t.category))].sort();
+        select.innerHTML =
+          `<option value="">All Categories</option>` +
+          categories.map((c) => `<option value="${c}">${c}</option>`).join("");
+      }
 
-      // Manual task add
       document
         .getElementById("manual-task-form")
         .addEventListener("submit", async (e) => {
           e.preventDefault();
-
           const title = document.getElementById("task-title").value;
           const category = document.getElementById("task-category").value;
           const priority = document.getElementById("task-priority").value;
@@ -221,113 +229,16 @@
             body: JSON.stringify({ title, category, priority, due_date }),
           });
 
-          const task = await res.json();
           if (res.ok) {
-            const li = document.createElement("li");
-            li.innerHTML = `
-                    <strong class="editable-title" data-id="${task.id}">${task.title}</strong><br>
-                    <small>Category: ${task.category} | Priority: ${task.priority}</small><br>
-                    <button data-id="${task.id}" class="complete-btn">Mark Complete</button>
-                    <button data-id="${task.id}" class="delete-btn">Delete</button>
-                  `;
             await loadTasks();
             applyFilters();
             e.target.reset();
           } else {
-            alert("Error: " + (task.error || "Unknown"));
+            const data = await res.json();
+            alert("Error: " + (data.error || "Unknown"));
           }
         });
 
-      let allTasks = [];
-
-      function applyFilters() {
-        const priority = document.getElementById("filter-priority").value;
-        const category = document.getElementById("filter-category").value;
-        const completed = document.getElementById("filter-completed").value;
-
-        const filtered = allTasks.filter((task) => {
-          return (
-            (!priority || task.priority === priority) &&
-            (!category || task.category === category) &&
-            (!completed || task.is_completed.toString() === completed)
-          );
-        });
-
-        renderTaskList(filtered);
-        updateFilterSummary();
-      }
-
-      function updateFilterSummary() {
-        const priority = document.getElementById("filter-priority").value;
-        const category = document.getElementById("filter-category").value;
-        const completed = document.getElementById("filter-completed").value;
-
-        const parts = [];
-        if (priority) parts.push(`Priority: ${priority}`);
-        if (category) parts.push(`Category: ${category}`);
-        if (completed)
-          parts.push(
-            `Status: ${completed === "true" ? "Completed" : "Incomplete"}`
-          );
-
-        const summary = parts.length
-          ? `Showing: ${parts.join(" • ")}`
-          : "Showing: All tasks";
-        document.getElementById("filter-summary").textContent = summary;
-      }
-
-      function renderTaskList(tasks) {
-        list.innerHTML = "";
-        tasks.forEach((task) => {
-          const li = document.createElement("li");
-          li.innerHTML = `
-          <strong class="editable-title" data-id="${task.id}">${
-            task.title
-          }</strong><br>
-            <small>Category: ${task.category} | Priority: ${
-            task.priority
-          }</small><br>
-            <button class="edit-btn" data-id="${task.id}">Edit</button>
-            ${
-              task.is_completed
-                ? ""
-                : `<button data-id="${task.id}" class="complete-btn">Mark Complete</button>`
-            }
-            <button data-id="${task.id}" class="delete-btn">Delete</button>
-          `;
-          if (task.is_completed) li.style.opacity = 0.4;
-          list.appendChild(li);
-        });
-      }
-
-      function populateCategoryFilter(tasks) {
-        const select = document.getElementById("filter-category");
-        const categories = [...new Set(tasks.map((t) => t.category))].sort();
-        select.innerHTML = `<option value="">All Categories</option>`;
-        categories.forEach((cat) => {
-          const opt = document.createElement("option");
-          opt.value = cat;
-          opt.textContent = cat;
-          select.appendChild(opt);
-        });
-      }
-
-      ["filter-priority", "filter-category", "filter-completed"].forEach((id) =>
-        document.getElementById(id).addEventListener("change", applyFilters)
-      );
-
-      // Load tasks
-      async function loadTasks() {
-        const res = await fetch("/tasks");
-        const tasks = await res.json();
-        allTasks = tasks;
-        renderTaskList(tasks);
-        populateCategoryFilter(tasks);
-      }
-
-      loadTasks();
-
-      // Generate tasks
       document
         .getElementById("goal-form")
         .addEventListener("submit", async (e) => {
@@ -342,74 +253,105 @@
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ goal }),
             });
-
             const data = await res.json();
 
             if (res.ok && Array.isArray(data)) {
-              data.forEach((task) => {
-                const li = document.createElement("li");
-                li.innerHTML = `
-                  <strong>${task.title}</strong><br>
-                  <small>Category: ${task.category} | Priority: ${task.priority}</small><br>
-                  <button data-id="${task.id}" class="complete-btn">Mark Complete</button>
-                  <button data-id="${task.id}" class="delete-btn">Delete</button>
-                `;
-                list.appendChild(li);
-              });
+              await loadTasks();
+              applyFilters();
               hint.textContent = "Tasks added!";
             } else {
               hint.textContent =
                 "OpenAI error: " + (data.error || "Unknown failure");
             }
-          } catch (err) {
+          } catch {
             hint.textContent = "Something went wrong.";
           }
         });
 
-      list.addEventListener("click", (e) => {
-        if (!e.target.classList.contains("edit-btn")) return;
-
+      list.addEventListener("click", async (e) => {
         const taskId = e.target.getAttribute("data-id");
-        const titleEl = e.target.parentElement.querySelector(".editable-title");
-        if (!titleEl) return;
+        const li = e.target.closest("li");
 
-        const currentText = titleEl.textContent;
+        if (e.target.classList.contains("complete-btn")) {
+          const res = await fetch(`/tasks/${taskId}/complete`, {
+            method: "PATCH",
+          });
+          if (res.ok) {
+            await loadTasks();
+            applyFilters();
+          } else alert("Failed to mark task complete.");
+        }
 
-        const input = document.createElement("input");
-        input.type = "text";
-        input.value = currentText;
-        input.style.fontWeight = "bold";
-        input.style.fontSize = "1em";
-        input.style.marginBottom = "0.5em";
+        if (e.target.classList.contains("delete-btn")) {
+          if (!confirm("Are you sure you want to delete this task?")) return;
+          const res = await fetch(`/tasks/${taskId}`, { method: "DELETE" });
+          if (res.ok) {
+            await loadTasks();
+            applyFilters();
+          } else alert("Failed to delete task.");
+        }
 
-        titleEl.replaceWith(input);
-        input.focus();
+        if (e.target.classList.contains("edit-btn")) {
+          const title = li.querySelector(".task-title").textContent;
+          const category = li.querySelector(".task-category").textContent;
+          const priority = li.querySelector(".task-priority").textContent;
+          const due =
+            li.querySelector(".task-due").textContent === "None"
+              ? ""
+              : li.querySelector(".task-due").textContent;
 
-        input.addEventListener("blur", async () => {
-          const newTitle = input.value.trim();
-          if (newTitle && newTitle !== currentText) {
-            const res = await fetch(`/tasks/${taskId}`, {
-              method: "PATCH",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ title: newTitle }),
-            });
+          li.innerHTML = `
+            <input type="text" id="edit-title" value="${title}" /><br>
+            <small>
+              Category: <input type="text" id="edit-category" value="${category}" />
+              Priority: 
+              <select id="edit-priority">
+                <option value="low" ${
+                  priority === "low" ? "selected" : ""
+                }>Low</option>
+                <option value="medium" ${
+                  priority === "medium" ? "selected" : ""
+                }>Medium</option>
+                <option value="high" ${
+                  priority === "high" ? "selected" : ""
+                }>High</option>
+              </select>
+              Due: <input type="date" id="edit-due" value="${due}" />
+            </small><br>
+            <button data-id="${taskId}" class="save-edit-btn">💾 Save</button>
+            <button class="cancel-edit-btn">Cancel</button>
+          `;
+        }
 
-            if (res.ok) {
-              await loadTasks();
-              applyFilters();
-            } else {
-              alert("Failed to update task title.");
-              input.replaceWith(titleEl); // revert
-            }
-          } else {
-            input.replaceWith(titleEl); // revert if unchanged or empty
-          }
-        });
+        if (e.target.classList.contains("save-edit-btn")) {
+          const title = li.querySelector("#edit-title").value;
+          const category = li.querySelector("#edit-category").value;
+          const priority = li.querySelector("#edit-priority").value;
+          const due_date = li.querySelector("#edit-due").value || null;
 
-        input.addEventListener("keydown", (eKey) => {
-          if (eKey.key === "Enter") input.blur();
-        });
+          const res = await fetch(`/tasks/${taskId}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ title, category, priority, due_date }),
+          });
+
+          if (res.ok) {
+            await loadTasks();
+            applyFilters();
+          } else alert("Failed to update task.");
+        }
+
+        if (e.target.classList.contains("cancel-edit-btn")) {
+          await loadTasks();
+          applyFilters();
+        }
       });
+
+      ["filter-priority", "filter-category", "filter-completed"].forEach((id) =>
+        document.getElementById(id).addEventListener("change", applyFilters)
+      );
+
+      loadTasks();
     </script>
   </body>
 </html>
