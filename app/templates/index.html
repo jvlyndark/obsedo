@@ -149,8 +149,8 @@
       async function loadTasks() {
         const res = await fetch("/tasks");
         allTasks = await res.json();
-        renderTaskList(allTasks);
         populateCategoryFilter(allTasks);
+        applyFilters();
       }
 
       function applyFilters() {
@@ -185,22 +185,25 @@
         list.innerHTML = "";
         tasks.forEach((task) => {
           const li = document.createElement("li");
+
+          li.style.opacity = task.is_completed ? 0.4 : 1;
+
           li.innerHTML = `
-            <strong class="task-title">${task.title}</strong><br>
-            <small>
-              Category: <span class="task-category">${task.category}</span> |
-              Priority: <span class="task-priority">${task.priority}</span> |
-              Due: <span class="task-due">${task.due_date || "None"}</span>
-            </small><br>
-            ${
-              task.is_completed
-                ? ""
-                : `<button data-id="${task.id}" class="complete-btn">Mark Complete</button>`
-            }
-            <button data-id="${task.id}" class="edit-btn">Edit</button>
-            <button data-id="${task.id}" class="delete-btn">Delete</button>
-          `;
-          if (task.is_completed) li.style.opacity = 0.4;
+      <strong class="task-title" data-id="${task.id}">${task.title}</strong><br>
+      <small>
+        Category: <span class="task-category">${task.category}</span> |
+        Priority: <span class="task-priority">${task.priority}</span> |
+        Due: <span class="task-due">${task.due_date || "None"}</span>
+      </small><br>
+      ${
+        task.is_completed
+          ? ""
+          : `<button data-id="${task.id}" class="complete-btn">Mark Complete</button>
+             <button data-id="${task.id}" class="edit-btn">Edit</button>`
+      }
+      <button data-id="${task.id}" class="delete-btn">Delete</button>
+    `;
+
           list.appendChild(li);
         });
       }
@@ -318,7 +321,7 @@
               </select>
               Due: <input type="date" id="edit-due" value="${due}" />
             </small><br>
-            <button data-id="${taskId}" class="save-edit-btn">💾 Save</button>
+            <button data-id="${taskId}" class="save-edit-btn">Save</button>
             <button class="cancel-edit-btn">Cancel</button>
           `;
         }
