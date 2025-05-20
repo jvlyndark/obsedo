@@ -138,6 +138,22 @@
           required
         />
         <button type="submit">Submit to Obsedo</button>
+
+        <div id="openai-key-section" style="margin-top: 1.5rem">
+          <label for="openai-key"
+            ><strong>Use your own OpenAI API key:</strong></label
+          ><br />
+          <input
+            type="password"
+            id="openai-key"
+            placeholder="sk-..."
+            style="width: 60%; margin-right: 0.5em"
+          />
+          <button type="button" id="save-openai-key">Save Key</button>
+          <button type="button" id="clear-openai-key" style="background: #888">
+            Clear
+          </button>
+        </div>
       </form>
       <small id="goal-hint" style="color: gray"></small>
     </div>
@@ -250,12 +266,21 @@
           const hint = document.getElementById("goal-hint");
           hint.textContent = "Planning...";
 
+          const userKey = localStorage.getItem("openai_api_key");
+          const headers = {
+            "Content-Type": "application/json",
+          };
+          if (userKey) {
+            headers["X-OpenAI-Key"] = userKey;
+          }
+
           try {
             const res = await fetch("/generate-tasks", {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
+              headers,
               body: JSON.stringify({ goal }),
             });
+
             const data = await res.json();
 
             if (res.ok && Array.isArray(data)) {
@@ -355,6 +380,34 @@
       );
 
       loadTasks();
+      // Load saved key
+      const openaiKeyInput = document.getElementById("openai-key");
+      const storedKey = localStorage.getItem("openai_api_key");
+      if (storedKey) {
+        openaiKeyInput.value = storedKey;
+      }
+
+      // Save key
+      document
+        .getElementById("save-openai-key")
+        .addEventListener("click", () => {
+          const key = openaiKeyInput.value.trim();
+          if (key.startsWith("sk-")) {
+            localStorage.setItem("openai_api_key", key);
+            alert("OpenAI key saved locally.");
+          } else {
+            alert("Please enter a valid OpenAI key.");
+          }
+        });
+
+      // Clear key
+      document
+        .getElementById("clear-openai-key")
+        .addEventListener("click", () => {
+          localStorage.removeItem("openai_api_key");
+          openaiKeyInput.value = "";
+          alert("Key cleared.");
+        });
     </script>
   </body>
 </html>
