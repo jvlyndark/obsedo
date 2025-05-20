@@ -153,6 +153,10 @@
           <button type="button" id="clear-openai-key" style="background: #888">
             Clear
           </button>
+          <div
+            id="key-status"
+            style="margin-top: 0.5rem; font-size: 0.9em; color: #555"
+          ></div>
         </div>
       </form>
       <small id="goal-hint" style="color: gray"></small>
@@ -408,6 +412,12 @@
           openaiKeyInput.value = "";
           alert("Key cleared.");
         });
+
+      // Restore status if key exists
+      if (localStorage.getItem("openai_api_key")) {
+        document.getElementById("key-status").textContent =
+          "API key is saved locally.";
+      }
     </script>
   </body>
 </html>
