@@ -84,6 +84,38 @@
         margin-right: 0.5rem;
         padding: 0.4em;
       }
+
+      body.dark {
+        background-color: #121212;
+        color: #f1f1f1;
+      }
+
+      body.dark input,
+      body.dark select,
+      body.dark textarea {
+        background-color: #1e1e1e;
+        color: #f1f1f1;
+        border: 1px solid #444;
+      }
+
+      body.dark button {
+        background-color: #333;
+        color: #fff;
+      }
+
+      body.dark #goal-form button {
+        background-color: #aa2233;
+      }
+
+      body.dark #goal-form button:hover {
+        background-color: #cc3344;
+      }
+
+      body.dark ul#task-list li {
+        background-color: #1e1e1e;
+        border-color: #444;
+        box-shadow: none;
+      }
     </style>
   </head>
   <body>
@@ -161,54 +193,58 @@
       </form>
       <small id="goal-hint" style="color: gray"></small>
     </div>
+    <div style="text-align: left; margin: 2rem 0">
+      <button id="toggle-theme" style="font-size: 0.9em">Dark Mode</button>
+    </div>
+  </body>
 
-    <script>
-      const list = document.getElementById("task-list");
-      let allTasks = [];
+  <script>
+    const list = document.getElementById("task-list");
+    let allTasks = [];
 
-      async function loadTasks() {
-        const res = await fetch("/tasks");
-        allTasks = await res.json();
-        populateCategoryFilter(allTasks);
-        applyFilters();
-      }
+    async function loadTasks() {
+      const res = await fetch("/tasks");
+      allTasks = await res.json();
+      populateCategoryFilter(allTasks);
+      applyFilters();
+    }
 
-      function applyFilters() {
-        const priority = document.getElementById("filter-priority").value;
-        const category = document.getElementById("filter-category").value;
-        const completed = document.getElementById("filter-completed").value;
+    function applyFilters() {
+      const priority = document.getElementById("filter-priority").value;
+      const category = document.getElementById("filter-category").value;
+      const completed = document.getElementById("filter-completed").value;
 
-        const filtered = allTasks.filter(
-          (t) =>
-            (!priority || t.priority === priority) &&
-            (!category || t.category === category) &&
-            (!completed || t.is_completed.toString() === completed)
+      const filtered = allTasks.filter(
+        (t) =>
+          (!priority || t.priority === priority) &&
+          (!category || t.category === category) &&
+          (!completed || t.is_completed.toString() === completed)
+      );
+      renderTaskList(filtered);
+      updateFilterSummary(priority, category, completed);
+    }
+
+    function updateFilterSummary(priority, category, completed) {
+      const parts = [];
+      if (priority) parts.push(`Priority: ${priority}`);
+      if (category) parts.push(`Category: ${category}`);
+      if (completed)
+        parts.push(
+          `Status: ${completed === "true" ? "Completed" : "Incomplete"}`
         );
-        renderTaskList(filtered);
-        updateFilterSummary(priority, category, completed);
-      }
+      document.getElementById("filter-summary").textContent = parts.length
+        ? `Showing: ${parts.join(" • ")}`
+        : "Showing: All tasks";
+    }
 
-      function updateFilterSummary(priority, category, completed) {
-        const parts = [];
-        if (priority) parts.push(`Priority: ${priority}`);
-        if (category) parts.push(`Category: ${category}`);
-        if (completed)
-          parts.push(
-            `Status: ${completed === "true" ? "Completed" : "Incomplete"}`
-          );
-        document.getElementById("filter-summary").textContent = parts.length
-          ? `Showing: ${parts.join(" • ")}`
-          : "Showing: All tasks";
-      }
+    function renderTaskList(tasks) {
+      list.innerHTML = "";
+      tasks.forEach((task) => {
+        const li = document.createElement("li");
 
-      function renderTaskList(tasks) {
-        list.innerHTML = "";
-        tasks.forEach((task) => {
-          const li = document.createElement("li");
+        li.style.opacity = task.is_completed ? 0.4 : 1;
 
-          li.style.opacity = task.is_completed ? 0.4 : 1;
-
-          li.innerHTML = `
+        li.innerHTML = `
       <strong class="task-title" data-id="${task.id}">${task.title}</strong><br>
       <small>
         Category: <span class="task-category">${task.category}</span> |
@@ -224,115 +260,114 @@
       <button data-id="${task.id}" class="delete-btn">Delete</button>
     `;
 
-          list.appendChild(li);
+        list.appendChild(li);
+      });
+    }
+
+    function populateCategoryFilter(tasks) {
+      const select = document.getElementById("filter-category");
+      const categories = [...new Set(tasks.map((t) => t.category))].sort();
+      select.innerHTML =
+        `<option value="">All Categories</option>` +
+        categories.map((c) => `<option value="${c}">${c}</option>`).join("");
+    }
+
+    document
+      .getElementById("manual-task-form")
+      .addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const title = document.getElementById("task-title").value;
+        const category = document.getElementById("task-category").value;
+        const priority = document.getElementById("task-priority").value;
+        const due_date = document.getElementById("task-due-date").value || null;
+
+        const res = await fetch("/tasks", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ title, category, priority, due_date }),
         });
-      }
 
-      function populateCategoryFilter(tasks) {
-        const select = document.getElementById("filter-category");
-        const categories = [...new Set(tasks.map((t) => t.category))].sort();
-        select.innerHTML =
-          `<option value="">All Categories</option>` +
-          categories.map((c) => `<option value="${c}">${c}</option>`).join("");
-      }
+        if (res.ok) {
+          await loadTasks();
+          applyFilters();
+          e.target.reset();
+        } else {
+          const data = await res.json();
+          alert("Error: " + (data.error || "Unknown"));
+        }
+      });
 
-      document
-        .getElementById("manual-task-form")
-        .addEventListener("submit", async (e) => {
-          e.preventDefault();
-          const title = document.getElementById("task-title").value;
-          const category = document.getElementById("task-category").value;
-          const priority = document.getElementById("task-priority").value;
-          const due_date =
-            document.getElementById("task-due-date").value || null;
+    document
+      .getElementById("goal-form")
+      .addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const goal = document.getElementById("goal").value;
+        const hint = document.getElementById("goal-hint");
+        hint.textContent = "Planning...";
 
-          const res = await fetch("/tasks", {
+        const userKey = localStorage.getItem("openai_api_key");
+        const headers = {
+          "Content-Type": "application/json",
+        };
+        if (userKey) {
+          headers["X-OpenAI-Key"] = userKey;
+        }
+
+        try {
+          const res = await fetch("/generate-tasks", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ title, category, priority, due_date }),
+            headers,
+            body: JSON.stringify({ goal }),
           });
 
-          if (res.ok) {
+          const data = await res.json();
+
+          if (res.ok && Array.isArray(data)) {
             await loadTasks();
             applyFilters();
-            e.target.reset();
+            hint.textContent = "Tasks added!";
           } else {
-            const data = await res.json();
-            alert("Error: " + (data.error || "Unknown"));
+            hint.textContent =
+              "OpenAI error: " + (data.error || "Unknown failure");
           }
-        });
-
-      document
-        .getElementById("goal-form")
-        .addEventListener("submit", async (e) => {
-          e.preventDefault();
-          const goal = document.getElementById("goal").value;
-          const hint = document.getElementById("goal-hint");
-          hint.textContent = "Planning...";
-
-          const userKey = localStorage.getItem("openai_api_key");
-          const headers = {
-            "Content-Type": "application/json",
-          };
-          if (userKey) {
-            headers["X-OpenAI-Key"] = userKey;
-          }
-
-          try {
-            const res = await fetch("/generate-tasks", {
-              method: "POST",
-              headers,
-              body: JSON.stringify({ goal }),
-            });
-
-            const data = await res.json();
-
-            if (res.ok && Array.isArray(data)) {
-              await loadTasks();
-              applyFilters();
-              hint.textContent = "Tasks added!";
-            } else {
-              hint.textContent =
-                "OpenAI error: " + (data.error || "Unknown failure");
-            }
-          } catch {
-            hint.textContent = "Something went wrong.";
-          }
-        });
-
-      list.addEventListener("click", async (e) => {
-        const taskId = e.target.getAttribute("data-id");
-        const li = e.target.closest("li");
-
-        if (e.target.classList.contains("complete-btn")) {
-          const res = await fetch(`/tasks/${taskId}/complete`, {
-            method: "PATCH",
-          });
-          if (res.ok) {
-            await loadTasks();
-            applyFilters();
-          } else alert("Failed to mark task complete.");
+        } catch {
+          hint.textContent = "Something went wrong.";
         }
+      });
 
-        if (e.target.classList.contains("delete-btn")) {
-          if (!confirm("Are you sure you want to delete this task?")) return;
-          const res = await fetch(`/tasks/${taskId}`, { method: "DELETE" });
-          if (res.ok) {
-            await loadTasks();
-            applyFilters();
-          } else alert("Failed to delete task.");
-        }
+    list.addEventListener("click", async (e) => {
+      const taskId = e.target.getAttribute("data-id");
+      const li = e.target.closest("li");
 
-        if (e.target.classList.contains("edit-btn")) {
-          const title = li.querySelector(".task-title").textContent;
-          const category = li.querySelector(".task-category").textContent;
-          const priority = li.querySelector(".task-priority").textContent;
-          const due =
-            li.querySelector(".task-due").textContent === "None"
-              ? ""
-              : li.querySelector(".task-due").textContent;
+      if (e.target.classList.contains("complete-btn")) {
+        const res = await fetch(`/tasks/${taskId}/complete`, {
+          method: "PATCH",
+        });
+        if (res.ok) {
+          await loadTasks();
+          applyFilters();
+        } else alert("Failed to mark task complete.");
+      }
 
-          li.innerHTML = `
+      if (e.target.classList.contains("delete-btn")) {
+        if (!confirm("Are you sure you want to delete this task?")) return;
+        const res = await fetch(`/tasks/${taskId}`, { method: "DELETE" });
+        if (res.ok) {
+          await loadTasks();
+          applyFilters();
+        } else alert("Failed to delete task.");
+      }
+
+      if (e.target.classList.contains("edit-btn")) {
+        const title = li.querySelector(".task-title").textContent;
+        const category = li.querySelector(".task-category").textContent;
+        const priority = li.querySelector(".task-priority").textContent;
+        const due =
+          li.querySelector(".task-due").textContent === "None"
+            ? ""
+            : li.querySelector(".task-due").textContent;
+
+        li.innerHTML = `
             <input type="text" id="edit-title" value="${title}" /><br>
             <small>
               Category: <input type="text" id="edit-category" value="${category}" />
@@ -353,71 +388,98 @@
             <button data-id="${taskId}" class="save-edit-btn">Save</button>
             <button class="cancel-edit-btn">Cancel</button>
           `;
-        }
+      }
 
-        if (e.target.classList.contains("save-edit-btn")) {
-          const title = li.querySelector("#edit-title").value;
-          const category = li.querySelector("#edit-category").value;
-          const priority = li.querySelector("#edit-priority").value;
-          const due_date = li.querySelector("#edit-due").value || null;
+      if (e.target.classList.contains("save-edit-btn")) {
+        const title = li.querySelector("#edit-title").value;
+        const category = li.querySelector("#edit-category").value;
+        const priority = li.querySelector("#edit-priority").value;
+        const due_date = li.querySelector("#edit-due").value || null;
 
-          const res = await fetch(`/tasks/${taskId}`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ title, category, priority, due_date }),
-          });
+        const res = await fetch(`/tasks/${taskId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ title, category, priority, due_date }),
+        });
 
-          if (res.ok) {
-            await loadTasks();
-            applyFilters();
-          } else alert("Failed to update task.");
-        }
-
-        if (e.target.classList.contains("cancel-edit-btn")) {
+        if (res.ok) {
           await loadTasks();
           applyFilters();
-        }
+        } else alert("Failed to update task.");
+      }
+
+      if (e.target.classList.contains("cancel-edit-btn")) {
+        await loadTasks();
+        applyFilters();
+      }
+    });
+
+    ["filter-priority", "filter-category", "filter-completed"].forEach((id) =>
+      document.getElementById(id).addEventListener("change", applyFilters)
+    );
+
+    loadTasks();
+    // Load saved key
+    const openaiKeyInput = document.getElementById("openai-key");
+    const storedKey = localStorage.getItem("openai_api_key");
+    if (storedKey) {
+      openaiKeyInput.value = storedKey;
+    }
+
+    // Save key
+    document.getElementById("save-openai-key").addEventListener("click", () => {
+      const key = openaiKeyInput.value.trim();
+      if (key.startsWith("sk-")) {
+        localStorage.setItem("openai_api_key", key);
+        alert("OpenAI key saved locally.");
+      } else {
+        alert("Please enter a valid OpenAI key.");
+      }
+    });
+
+    // Clear key
+    document
+      .getElementById("clear-openai-key")
+      .addEventListener("click", () => {
+        localStorage.removeItem("openai_api_key");
+        openaiKeyInput.value = "";
+        alert("Key cleared.");
       });
 
-      ["filter-priority", "filter-category", "filter-completed"].forEach((id) =>
-        document.getElementById(id).addEventListener("change", applyFilters)
-      );
+    // Restore status if key exists
+    if (localStorage.getItem("openai_api_key")) {
+      document.getElementById("key-status").textContent =
+        "API key is saved locally.";
+    }
 
-      loadTasks();
-      // Load saved key
-      const openaiKeyInput = document.getElementById("openai-key");
-      const storedKey = localStorage.getItem("openai_api_key");
-      if (storedKey) {
-        openaiKeyInput.value = storedKey;
+    function applyTheme(theme) {
+      document.body.dataset.theme = theme;
+      if (theme === "dark") {
+        document.documentElement.style.setProperty("--bg-color", "#121212");
+        document.documentElement.style.setProperty("--text-color", "#f0f0f0");
+      } else {
+        document.documentElement.style.setProperty("--bg-color", "#f8f9fa");
+        document.documentElement.style.setProperty("--text-color", "#222");
       }
+    }
 
-      // Save key
-      document
-        .getElementById("save-openai-key")
-        .addEventListener("click", () => {
-          const key = openaiKeyInput.value.trim();
-          if (key.startsWith("sk-")) {
-            localStorage.setItem("openai_api_key", key);
-            alert("OpenAI key saved locally.");
-          } else {
-            alert("Please enter a valid OpenAI key.");
-          }
-        });
+    // Dark mode toggle (working version)
+    document.getElementById("toggle-theme").addEventListener("click", () => {
+      document.body.classList.toggle("dark");
 
-      // Clear key
-      document
-        .getElementById("clear-openai-key")
-        .addEventListener("click", () => {
-          localStorage.removeItem("openai_api_key");
-          openaiKeyInput.value = "";
-          alert("Key cleared.");
-        });
+      const isDark = document.body.classList.contains("dark");
+      localStorage.setItem("obsedo-darkmode", isDark ? "true" : "false");
+      document.getElementById("toggle-theme").textContent = isDark
+        ? "Light Mode"
+        : "Dark Mode";
+    });
 
-      // Restore status if key exists
-      if (localStorage.getItem("openai_api_key")) {
-        document.getElementById("key-status").textContent =
-          "API key is saved locally.";
+    // Apply preference on load
+    window.addEventListener("DOMContentLoaded", () => {
+      if (localStorage.getItem("obsedo-darkmode") === "true") {
+        document.body.classList.add("dark");
+        document.getElementById("toggle-theme").textContent = "Light Mode";
       }
-    </script>
-  </body>
+    });
+  </script>
 </html>
