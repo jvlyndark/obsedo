@@ -155,45 +155,54 @@
     <div id="filter-summary" style="margin-bottom: 1rem; color: #555"></div>
     <ul id="task-list"></ul>
 
-    <div id="experimental-wrapper">
-      <p class="ai-label">🧠 Experimental: AI Task Generator</p>
-      <p class="ai-note">
-        This feature is disabled in the public demo for security reasons.<br />
-        To try it locally, clone the repo and add your OpenAI key to a `.env`
-        file.
-      </p>
-      <form id="goal-form">
-        <input
-          type="text"
-          id="goal"
-          placeholder="Confess your goal..."
-          required
-        />
-        <button type="submit">Submit to Obsedo</button>
-
-        <div id="openai-key-section" style="margin-top: 1.5rem">
-          <label for="openai-key"
-            ><strong>Use your own OpenAI API key:</strong></label
-          ><br />
+    <details id="experimental-wrapper" style="margin-top: 3rem">
+      <summary style="cursor: pointer">
+        <span class="ai-label">🧠 Experimental: AI Task Generator</span>
+      </summary>
+      <div style="padding-top: 1rem">
+        <p class="ai-note">
+          This feature is disabled in the public demo for security reasons.<br />
+          To try it locally, clone the repo and add your OpenAI key to a `.env`
+          file.
+        </p>
+        <form id="goal-form">
           <input
-            type="password"
-            id="openai-key"
-            placeholder="sk-..."
-            style="width: 60%; margin-right: 0.5em"
+            type="text"
+            id="goal"
+            placeholder="Confess your goal..."
+            required
           />
-          <button type="button" id="save-openai-key">Save Key</button>
-          <button type="button" id="clear-openai-key" style="background: #888">
-            Clear
-          </button>
-          <div
-            id="key-status"
-            style="margin-top: 0.5rem; font-size: 0.9em; color: #555"
-          ></div>
-        </div>
-      </form>
-      <small id="goal-hint" style="color: gray"></small>
-    </div>
-    <div style="text-align: left; margin: 2rem 0">
+          <button type="submit">Submit to Obsedo</button>
+
+          <div id="openai-key-section" style="margin-top: 1.5rem">
+            <label for="openai-key"
+              ><strong>Use your own OpenAI API key:</strong></label
+            ><br />
+            <input
+              type="password"
+              id="openai-key"
+              placeholder="sk-..."
+              style="width: 60%; margin-right: 0.5em"
+            />
+            <button type="button" id="save-openai-key">Save Key</button>
+            <button
+              type="button"
+              id="clear-openai-key"
+              style="background: #888"
+            >
+              Clear
+            </button>
+            <div
+              id="key-status"
+              style="margin-top: 0.5rem; font-size: 0.9em; color: #555"
+            ></div>
+          </div>
+        </form>
+        <small id="goal-hint" style="color: gray"></small>
+      </div>
+    </details>
+
+    <div style="position: absolute; top: 1rem; right: 1rem">
       <button id="toggle-theme" style="font-size: 0.9em">Dark Mode</button>
     </div>
   </body>
