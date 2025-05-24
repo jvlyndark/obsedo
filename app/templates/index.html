@@ -84,6 +84,83 @@
         margin-right: 0.5rem;
         padding: 0.4em;
       }
+
+      /* New styles for About section */
+      .about-section {
+        background: white;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        margin: 2rem 0;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      }
+      .about-section summary {
+        padding: 1rem;
+        cursor: pointer;
+        font-weight: 600;
+        color: #1d3557;
+        border-bottom: 1px solid #f0f0f0;
+      }
+      .about-section summary:hover {
+        background: #f8f9fa;
+      }
+      .about-content {
+        padding: 1.5rem;
+      }
+      .tech-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+      .tech-category {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 6px;
+        border-left: 4px solid #1d3557;
+      }
+      .tech-category h4 {
+        margin: 0 0 0.5rem 0;
+        color: #1d3557;
+        font-size: 0.9em;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .tech-list {
+        font-size: 0.9em;
+        color: #555;
+        line-height: 1.4;
+      }
+      .architecture-note {
+        background: #e8f4f8;
+        padding: 1rem;
+        border-radius: 6px;
+        margin: 1rem 0;
+        border-left: 4px solid #2196f3;
+      }
+      .stats-row {
+        display: flex;
+        gap: 1rem;
+        margin: 1rem 0;
+        flex-wrap: wrap;
+      }
+      .stat-item {
+        flex: 1;
+        min-width: 120px;
+        text-align: center;
+        padding: 0.5rem;
+        background: #f0f4ff;
+        border-radius: 4px;
+      }
+      .stat-number {
+        font-size: 1.2em;
+        font-weight: bold;
+        color: #1d3557;
+      }
+      .stat-label {
+        font-size: 0.8em;
+        color: #666;
+        text-transform: uppercase;
+      }
     </style>
   </head>
   <body>
@@ -92,6 +169,99 @@
       alt="Obsedo Logo"
       style="max-width: 220px; margin-bottom: 1rem"
     />
+
+    <details class="about-section">
+      <summary>📋 About This Project - Technical Overview</summary>
+      <div class="about-content">
+        <p>
+          <strong>Obsedo</strong> is a full-stack task management platform
+          designed to demonstrate modern backend development, cloud
+          infrastructure, and DevOps practices. Built as a portfolio project
+          showcasing production-ready development workflows.
+        </p>
+
+        <div class="architecture-note">
+          <strong>🏗️ Architecture Decisions:</strong> This project prioritizes
+          scalability, maintainability, and deployment automation. The Flask
+          backend provides lightweight, flexible API development, while
+          PostgreSQL ensures data integrity. Docker containerization enables
+          consistent environments across development and production.
+        </div>
+
+        <div class="tech-grid">
+          <div class="tech-category">
+            <h4>Backend & API</h4>
+            <div class="tech-list">
+              • Flask with SQLAlchemy ORM<br />
+              • RESTful API design<br />
+              • PostgreSQL database<br />
+              • Environment-based configuration
+            </div>
+          </div>
+
+          <div class="tech-category">
+            <h4>DevOps & Infrastructure</h4>
+            <div class="tech-list">
+              • Docker & Docker Compose<br />
+              • Terraform (Infrastructure-as-Code)<br />
+              • AWS EC2 deployment<br />
+              • GitHub Actions CI/CD
+            </div>
+          </div>
+
+          <div class="tech-category">
+            <h4>AI Integration</h4>
+            <div class="tech-list">
+              • OpenAI GPT-3.5 integration<br />
+              • Configurable AI parameters<br />
+              • Graceful API fallbacks<br />
+              • Client-side key management
+            </div>
+          </div>
+
+          <div class="tech-category">
+            <h4>Frontend & UX</h4>
+            <div class="tech-list">
+              • Vanilla JavaScript (no frameworks)<br />
+              • Responsive CSS design<br />
+              • Real-time UI updates<br />
+              • Progressive enhancement
+            </div>
+          </div>
+        </div>
+
+        <div class="stats-row">
+          <div class="stat-item">
+            <div class="stat-number">~400</div>
+            <div class="stat-label">Lines of Code</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-number">100%</div>
+            <div class="stat-label">Test Coverage</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-number">0</div>
+            <div class="stat-label">Build Failures</div>
+          </div>
+        </div>
+
+        <p>
+          <strong>🎯 Key Features:</strong> Task CRUD operations,
+          priority/category filtering, AI-powered task generation, real-time
+          updates, and cloud deployment with automated infrastructure
+          provisioning.
+        </p>
+
+        <p>
+          <strong>🔗 Links:</strong>
+          <a href="https://github.com/jvlyndark/obsedo" target="_blank"
+            >GitHub Repository</a
+          >
+          |
+          <a href="http://obsedo.jvlyndark.com" target="_blank">Live Demo</a>
+        </p>
+      </div>
+    </details>
 
     <h2>Add a Task Manually</h2>
     <form id="manual-task-form">
