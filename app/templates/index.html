@@ -84,38 +84,6 @@
         margin-right: 0.5rem;
         padding: 0.4em;
       }
-
-      body.dark {
-        background-color: #121212;
-        color: #f1f1f1;
-      }
-
-      body.dark input,
-      body.dark select,
-      body.dark textarea {
-        background-color: #1e1e1e;
-        color: #f1f1f1;
-        border: 1px solid #444;
-      }
-
-      body.dark button {
-        background-color: #333;
-        color: #fff;
-      }
-
-      body.dark #goal-form button {
-        background-color: #aa2233;
-      }
-
-      body.dark #goal-form button:hover {
-        background-color: #cc3344;
-      }
-
-      body.dark ul#task-list li {
-        background-color: #1e1e1e;
-        border-color: #444;
-        box-shadow: none;
-      }
     </style>
   </head>
   <body>
@@ -205,10 +173,6 @@
         <small id="goal-hint" style="color: gray"></small>
       </div>
     </details>
-
-    <div style="position: absolute; top: 1rem; right: 1rem">
-      <button id="toggle-theme" style="font-size: 0.9em">Dark Mode</button>
-    </div>
   </body>
 
   <script>
@@ -464,35 +428,5 @@
       document.getElementById("key-status").textContent =
         "API key is saved locally.";
     }
-
-    function applyTheme(theme) {
-      document.body.dataset.theme = theme;
-      if (theme === "dark") {
-        document.documentElement.style.setProperty("--bg-color", "#121212");
-        document.documentElement.style.setProperty("--text-color", "#f0f0f0");
-      } else {
-        document.documentElement.style.setProperty("--bg-color", "#f8f9fa");
-        document.documentElement.style.setProperty("--text-color", "#222");
-      }
-    }
-
-    // Dark mode toggle (working version)
-    document.getElementById("toggle-theme").addEventListener("click", () => {
-      document.body.classList.toggle("dark");
-
-      const isDark = document.body.classList.contains("dark");
-      localStorage.setItem("obsedo-darkmode", isDark ? "true" : "false");
-      document.getElementById("toggle-theme").textContent = isDark
-        ? "Light Mode"
-        : "Dark Mode";
-    });
-
-    // Apply preference on load
-    window.addEventListener("DOMContentLoaded", () => {
-      if (localStorage.getItem("obsedo-darkmode") === "true") {
-        document.body.classList.add("dark");
-        document.getElementById("toggle-theme").textContent = "Light Mode";
-      }
-    });
   </script>
 </html>
