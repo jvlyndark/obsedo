@@ -9,15 +9,25 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   obsedo-app:
     build: .
     ports:
       - "80:5000"
-    env_file:
-      - .env
     volumes:
       - .:/app
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/obsedo_dev
+      - SECRET_KEY=defaultsecret
+      # Add OPENAI_API_KEY here if needed for production
 
 volumes:
   postgres_data:
