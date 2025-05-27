@@ -20,7 +20,7 @@ def create_app(test_config=None):
     app.register_blueprint(routes_bp)
 
     db.init_app(app)
-    migrate = Migrate(app, db)
+    Migrate(app, db)  # Initialize Flask-Migrate
 
     # Only create tables if not using migrations in production
     if app.config.get("TESTING"):
