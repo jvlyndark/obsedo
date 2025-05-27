@@ -10,17 +10,20 @@ Obsedo is a fast, clean task manager built from scratch using Python, Flask, Doc
 
 ### 🛠️ Core Technologies
 
-- **Backend**: Python, Flask, SQLAlchemy
+- **Backend**: Python, Flask, SQLAlchemy, Flask-Migrate
 - **DevOps**: Docker, Docker Compose, GitHub Actions
 - **Infrastructure**: Terraform, AWS EC2
+- **Database**: PostgreSQL (production), SQLite (development)
 - **Frontend**: HTML, CSS, Vanilla JS
 - **Optional**: OpenAI GPT integration via `.env`
 
 ### ✨ Core Features
 
-- Add, view, and delete tasks
+- Add, view, edit, and delete tasks
 - Mark tasks as complete
 - Track priority, category, and optional due dates
+- Automatic timestamp tracking (created_at, updated_at)
+- Professional database migrations for schema management
 - Clean interface with real-time updates
 
 ---
@@ -42,45 +45,77 @@ docker-compose up --build
 
 Then visit http://localhost:80 in your browser.
 
-### 💻 Run Locally Without Docker (Optional)
+### 💻 Run Locally Without Docker (Development)
 
-Only do this if you want to run the code without containers:
+For local development with SQLite:
 
 ```bash
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
-flask run
+
+# Run database migrations
+DATABASE_URL=sqlite:///obsedo.db flask db upgrade
+
+# Start the app
+DATABASE_URL=sqlite:///obsedo.db flask run
 ```
 
-You'll need Python 3.11+ installed. This is mainly useful for debugging or development.
+Visit http://localhost:5000 in your browser.
+
+---
+
+## 🗄️ Database Migrations
+
+This project uses Flask-Migrate for professional database schema management:
+
+### Creating New Migrations
+
+```bash
+# After modifying models in app/models.py
+DATABASE_URL=sqlite:///obsedo.db flask db migrate -m "Description of changes"
+DATABASE_URL=sqlite:///obsedo.db flask db upgrade
+```
+
+### Production Deployment
+
+```bash
+# Apply migrations in production
+flask db upgrade
+```
+
+**Key Benefits:**
+
+- Zero-downtime schema changes
+- Version-controlled database evolution
+- Rollback capability for safe deployments
+- Environment-specific configurations (SQLite local, PostgreSQL prod)
+
+---
 
 ## 🧩 Roadmap
 
-### Completed
+### Completed ✅
 
 - [x] Add OpenAI-powered task planning
 - [x] Add GitHub Actions CI
 - [x] Add unit tests for Flask routes
 - [x] Deploy with Terraform + AWS
-- [x] Add task editing
+- [x] Add task editing with full CRUD operations
 - [x] Add filtering + sorting (priority, category, completion)
+- [x] **Database migrations with Flask-Migrate**
+- [x] **Automatic timestamp tracking for audit trails**
 
-### In progress
+### In Progress 🚧
 
 - [ ] Client-side support for user-supplied OpenAI keys
 - [ ] Responsive UI redesign (mobile & dark mode)
 
-### Under Consideration
+### Under Consideration 💭
 
 - [ ] User authentication
-- [ ] PostreSQL for production
+- [ ] Advanced PostgreSQL features for production
 - [ ] Serverless deployment for ECS
-
-## 📄 License
-
-This project is licensed under the MIT License.
-See ./LICENSE for details.
 
 ---
 
@@ -120,7 +155,9 @@ To enable:
 
 1. Get an [OpenAI API key](https://platform.openai.com/account/api-keys)
 2. Set it in your `.env` file:
+   ```
    OPENAI_API_KEY=your-key-here
+   ```
 
 If no key is set, the feature is disabled gracefully.
 
@@ -139,7 +176,33 @@ You can find Terraform config under `/infra`.
 
 Deployment spins up an EC2 instance, installs Docker, and launches the app via `docker-compose`.
 
-Steps will be added as this infrastructure is developed.
+---
+
+## 🏗️ Architecture Highlights
+
+**Production-Ready Features:**
+
+- Database migration system for safe schema evolution
+- Environment-specific configurations
+- Containerized deployment with Docker
+- Infrastructure-as-Code with Terraform
+- Automated testing and linting
+- RESTful API design with proper error handling
+- Timestamp auditing for data integrity
+
+**Development Workflow:**
+
+- SQLite for local development (zero setup)
+- PostgreSQL for production (data integrity)
+- Hot-reloading for rapid development
+- Comprehensive test coverage
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License.
+See ./LICENSE for details.
 
 ---
 
