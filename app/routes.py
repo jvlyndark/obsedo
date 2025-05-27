@@ -78,7 +78,20 @@ def update_task(task_id):
 
     if "title" in data:
         task.title = data["title"]
+    if "category" in data:
+        task.category = data["category"]
+    if "priority" in data:
+        task.priority = data["priority"]
+    if "due_date" in data:
+        due_date_raw = data["due_date"]
+        try:
+            task.due_date = (
+                datetime.fromisoformat(due_date_raw) if due_date_raw else None
+            )
+        except ValueError:
+            return jsonify({"error": "Invalid date format. Use ISO 8601."}), 400
 
+    # updated_at is automatically updated via onupdate in the model
     db.session.commit()
     return jsonify(task.serialize())
 
@@ -90,6 +103,7 @@ def complete_task(task_id):
         return jsonify({"error": "Task not found"}), 404
 
     task.is_completed = True
+    # updated_at automatically updated
     db.session.commit()
     return jsonify(task.serialize()), 200
 
