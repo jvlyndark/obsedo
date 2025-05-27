@@ -17,9 +17,5 @@ ENV FLASK_APP=run.py
 # Expose port
 EXPOSE 5000
 
-# Create startup script that runs migrations then starts the app
-RUN echo '#!/bin/bash\nflask db upgrade\ngunicorn -b 0.0.0.0:5000 run:app' > start.sh
-RUN chmod +x start.sh
-
-# Run the startup script
-CMD ["./start.sh"]
+# Run migrations then start the app
+CMD ["sh", "-c", "flask db upgrade && gunicorn -b 0.0.0.0:5000 run:app"]
