@@ -1,4 +1,4 @@
-![Obsedo Screenshot](app/static/obsedo-screenshot.png)
+<img src="app/static/obsedo-screenshot.png" alt="Obsedo Interface" width="600">
 
 # Obsedo
 
