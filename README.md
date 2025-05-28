@@ -1,3 +1,5 @@
+![Obsedo Screenshot](app/static/obsedo-screenshot.png)
+
 # Obsedo
 
 > Minimalist, AI-optional task manager – built to showcase fullstack deployment and infrastructure automation.
