@@ -2,7 +2,7 @@
 
 # Obsedo
 
-> Minimalist, AI-optional task manager – built to showcase fullstack deployment and infrastructure automation.
+> "Production-ready task manager with Flask, PostgreSQL, Docker, AWS deployment, and database migrations"
 
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-obsedo.jvlyndark.com-blue?style=flat-square)](http://obsedo.jvlyndark.com)
 

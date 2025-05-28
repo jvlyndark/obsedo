@@ -3,6 +3,19 @@
   <head>
     <meta charset="UTF-8" />
     <title>Obsedo</title>
+    <!-- Open Graph meta tags -->
+    <meta property="og:title" content="Obsedo - Task Manager" />
+    <meta
+      property="og:description"
+      content="Production-ready task manager built with Flask, PostgreSQL, Docker, and deployed on AWS with database migrations"
+    />
+    <meta
+      property="og:image"
+      content="http://obsedo.jvlyndark.com/static/obsedo-screenshot.png"
+    />
+    <meta property="og:url" content="http://obsedo.jvlyndark.com" />
+    <meta property="og:type" content="website" />
+
     <link
       rel="stylesheet"
       href="{{ url_for('static', filename='styles.css') }}"
