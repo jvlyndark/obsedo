@@ -13,7 +13,7 @@ Obsedo is a fast, clean task manager built from scratch using Python, Flask, Doc
 ### 🛠️ Core Technologies
 
 - **Backend**: Python, Flask, SQLAlchemy, Flask-Migrate
-- **DevOps**: Docker, Docker Compose, GitHub Actions
+- **DevOps**: Docker, Docker Compose, Kubernetes, GitHub Actions
 - **Infrastructure**: Terraform, AWS EC2
 - **Database**: PostgreSQL (production), SQLite (development)
 - **Frontend**: HTML, CSS, Vanilla JS
@@ -107,6 +107,7 @@ flask db upgrade
 - [x] Add filtering + sorting (priority, category, completion)
 - [x] **Database migrations with Flask-Migrate**
 - [x] **Automatic timestamp tracking for audit trails**
+- [x] **Kubernetes manifests for local Minikube deployment**
 
 ### In Progress 🚧
 
@@ -162,6 +163,46 @@ To enable:
    ```
 
 If no key is set, the feature is disabled gracefully.
+
+---
+
+## ☸️ Run with Kubernetes (Minikube)
+
+Obsedo includes Kubernetes manifests for local deployment with Minikube.
+
+### Requirements
+
+- [Minikube](https://minikube.sigs.k8s.io/docs/start/)
+- [kubectl](https://kubernetes.io/docs/tasks/tools/)
+- Docker Desktop (running)
+
+### Deploy
+
+```bash
+# Start Minikube
+minikube start --driver=docker
+
+# Point your shell at Minikube's Docker daemon
+eval $(minikube docker-env)
+
+# Build the image inside Minikube
+docker build -t obsedo-app:latest .
+
+# Apply manifests
+kubectl apply -f k8s/configmap.yaml
+kubectl apply -f k8s/secret.yaml
+kubectl apply -f k8s/postgres-pvc.yaml
+kubectl apply -f k8s/postgres-deployment.yaml
+kubectl apply -f k8s/postgres-service.yaml
+kubectl apply -f k8s/app-deployment.yaml
+kubectl apply -f k8s/app-service.yaml
+
+# Watch pods come up (wait for both to show Running)
+kubectl get pods -w
+
+# Open the app
+minikube service obsedo-app
+```
 
 ---
 
