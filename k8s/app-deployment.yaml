@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: obsedo-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: obsedo-app
+  template:
+    metadata:
+      labels:
+        app: obsedo-app
+    spec:
+      initContainers:
+        - name: wait-for-postgres
+          image: postgres:15
+          command:
+            - sh
+            - -c
+            - |
+              until pg_isready -h postgres -U postgres; do
+                echo "Waiting for postgres...";
+                sleep 2;
+              done
+      containers:
+        - name: obsedo-app
+          image: obsedo-app:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 5000
+          envFrom:
+            - configMapRef:
+                name: obsedo-config
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: obsedo-secret
+                  key: DATABASE_URL
+            - name: SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: obsedo-secret
+                  key: SECRET_KEY
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 5000
+            initialDelaySeconds: 10
+            periodSeconds: 5
