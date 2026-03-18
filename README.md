@@ -206,6 +206,47 @@ minikube service obsedo-app
 
 ---
 
+## ⛵ Deploy with Helm (Minikube)
+
+Obsedo ships a Helm chart under `helm/obsedo/` as a more configurable alternative to the raw manifests above.
+
+### Requirements
+
+- All requirements from the Kubernetes section above
+- [Helm](https://helm.sh/docs/intro/install/)
+
+### Deploy
+
+```bash
+# Start Minikube and build the image (same as above)
+minikube start --driver=docker
+eval $(minikube docker-env)
+docker build -t obsedo-app:latest .
+
+# Install the chart
+helm install obsedo ./helm/obsedo
+
+# Watch pods come up, then open the app
+kubectl get pods -w
+minikube service obsedo-app
+```
+
+### Upgrade
+
+```bash
+# Rebuild with a new tag, then upgrade
+docker build -t obsedo-app:v2 .
+helm upgrade obsedo ./helm/obsedo --set app.image.tag=v2
+```
+
+### Uninstall
+
+```bash
+helm uninstall obsedo
+```
+
+---
+
 ## ☁️ Deploy to AWS with Terraform
 
 Obsedo is fully deployable to the cloud using:
