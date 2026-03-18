@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: obsedo-app
+  labels:
+    {{- include "obsedo.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.app.replicaCount }}
+  selector:
+    matchLabels:
+      app: obsedo-app
+  template:
+    metadata:
+      labels:
+        app: obsedo-app
+    spec:
+      initContainers:
+        - name: wait-for-postgres
+          image: "{{ .Values.postgres.image.repository }}:{{ .Values.postgres.image.tag }}"
+          command:
+            - sh
+            - -c
+            - |
+              until pg_isready -h postgres -U {{ .Values.postgres.user }}; do
+                echo "Waiting for postgres...";
+                sleep 2;
+              done
+      containers:
+        - name: obsedo-app
+          image: "{{ .Values.app.image.repository }}:{{ .Values.app.image.tag }}"
+          imagePullPolicy: {{ .Values.app.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.app.service.targetPort }}
+          envFrom:
+            - configMapRef:
+                name: obsedo-config
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: obsedo-secret
+                  key: DATABASE_URL
+            - name: SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: obsedo-secret
+                  key: SECRET_KEY
+          readinessProbe:
+            httpGet:
+              path: /
+              port: {{ .Values.app.service.targetPort }}
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          resources:
+            {{- toYaml .Values.app.resources | nindent 12 }}

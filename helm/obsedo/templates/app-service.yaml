@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: obsedo-app
+  labels:
+    {{- include "obsedo.labels" . | nindent 4 }}
+spec:
+  selector:
+    app: obsedo-app
+  ports:
+    - port: {{ .Values.app.service.port }}
+      targetPort: {{ .Values.app.service.targetPort }}
+  type: {{ .Values.app.service.type }}
