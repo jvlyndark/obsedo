@@ -2,42 +2,80 @@
 
 # Obsedo
 
-> "Production-ready task manager with Flask, PostgreSQL, Docker, AWS deployment, and database migrations"
+A portfolio project demonstrating containerised application deployment, infrastructure-as-code, Kubernetes/Helm packaging, and a GitHub Actions CI/CD pipeline — built on a Python/Flask + PostgreSQL backend.
 
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-obsedo.jvlyndark.com-blue?style=flat-square)](http://obsedo.jvlyndark.com)
 
-Obsedo is a fast, clean task manager built from scratch using Python, Flask, Docker, Terraform, and AWS. Designed as a developer portfolio project, it demonstrates backend development, DevOps workflows, infrastructure-as-code, CI, and cloud deployment. OpenAI integration is included as an optional module.
+---
+
+## Stack
+
+| Layer | Technology |
+|---|---|
+| Backend | Python 3.11, Flask, SQLAlchemy, Flask-Migrate |
+| Database | PostgreSQL (production), SQLite (development) |
+| Containerisation | Docker, Docker Compose |
+| Orchestration | Kubernetes (Minikube), Helm |
+| Infrastructure | Terraform, AWS EC2 |
+| CI/CD | GitHub Actions, GitHub Container Registry |
+| Testing | pytest, flake8 |
 
 ---
 
-### 🛠️ Core Technologies
+## Architecture
 
-- **Backend**: Python, Flask, SQLAlchemy, Flask-Migrate
-- **DevOps**: Docker, Docker Compose, Kubernetes, GitHub Actions
-- **Infrastructure**: Terraform, AWS EC2
-- **Database**: PostgreSQL (production), SQLite (development)
-- **Frontend**: HTML, CSS, Vanilla JS
-- **Optional**: OpenAI GPT integration via `.env`
+```mermaid
+flowchart TD
+    subgraph CI ["GitHub Actions CI"]
+        lint[lint-and-build\nflake8 + pytest]
+        docker_job[docker\nbuild + push to ghcr.io]
+        helm_job[helm\nlint + template render]
+    end
 
-### ✨ Core Features
+    subgraph App ["Application"]
+        flask[Flask App\nPort 5000]
+        pg[(PostgreSQL\nPort 5432)]
+        flask --> pg
+    end
 
-- Add, view, edit, and delete tasks
-- Mark tasks as complete
-- Track priority, category, and optional due dates
-- Automatic timestamp tracking (created_at, updated_at)
-- Professional database migrations for schema management
-- Clean interface with real-time updates
+    subgraph Local ["Local — Kubernetes / Minikube"]
+        raw[Raw manifests\nkubectl apply -f k8s/]
+        helm_chart[Helm chart\nhelm install obsedo ./helm/obsedo]
+    end
+
+    subgraph Cloud ["Cloud — AWS"]
+        ec2[EC2 Instance]
+        compose[Docker Compose]
+        tf[Terraform\n/infra]
+        tf --> ec2
+        ec2 --> compose
+    end
+
+    CI --> App
+    App --> Local
+    App --> Cloud
+    docker_job -->|ghcr.io/jvlyndark/obsedo:sha| Cloud
+```
 
 ---
 
-## 🚀 Getting Started
+## CI/CD
 
-### Requirements
+Every push to `main` and every pull request runs three parallel jobs:
 
-- Python 3.11+
-- Docker & Docker Compose
+| Job | What it does |
+|---|---|
+| `lint-and-build` | Installs dependencies, runs flake8, builds via Docker Compose |
+| `docker` | Builds the image and pushes `ghcr.io/jvlyndark/obsedo:<sha>` (main only) |
+| `helm` | Runs `helm lint` and `helm template` to validate the chart |
 
-### Run in Docker
+Images are tagged with the full commit SHA for traceability.
+
+---
+
+## Deployment
+
+### Docker Compose — local development
 
 ```bash
 git clone https://github.com/jvlyndark/obsedo.git
@@ -45,261 +83,97 @@ cd obsedo
 docker-compose up --build
 ```
 
-Then visit http://localhost:80 in your browser.
-
-### 💻 Run Locally Without Docker (Development)
-
-For local development with SQLite:
-
-```bash
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-
-# Run database migrations
-DATABASE_URL=sqlite:///obsedo.db flask db upgrade
-
-# Start the app
-DATABASE_URL=sqlite:///obsedo.db flask run
-```
-
-Visit http://localhost:5000 in your browser.
+Visit http://localhost:80.
 
 ---
 
-## 🗄️ Database Migrations
-
-This project uses Flask-Migrate for professional database schema management:
-
-### Creating New Migrations
+### Kubernetes — raw manifests (Minikube)
 
 ```bash
-# After modifying models in app/models.py
-DATABASE_URL=sqlite:///obsedo.db flask db migrate -m "Description of changes"
-DATABASE_URL=sqlite:///obsedo.db flask db upgrade
+minikube start --driver=docker
+eval $(minikube docker-env)
+docker build -t obsedo-app:latest .
+
+kubectl apply -f k8s/
+kubectl get pods -w
+minikube service obsedo-app
 ```
 
-### Production Deployment
+Manifests are in `k8s/`. Includes a ConfigMap, Secret, PVC, Deployments, and Services.
+
+---
+
+### Kubernetes — Helm (Minikube)
+
+The Helm chart under `helm/obsedo/` exposes image tag, replica count, database credentials, service type, and resource limits as values.
 
 ```bash
-# Apply migrations in production
+minikube start --driver=docker
+eval $(minikube docker-env)
+docker build -t obsedo-app:latest .
+
+helm install obsedo ./helm/obsedo
+kubectl get pods -w
+minikube service obsedo-app
+```
+
+Upgrade with a new image tag:
+
+```bash
+docker build -t obsedo-app:v2 .
+helm upgrade obsedo ./helm/obsedo --set app.image.tag=v2
+```
+
+---
+
+### AWS — Terraform
+
+Infrastructure config is under `/infra`. Terraform provisions an EC2 instance, installs Docker, and launches the app via `docker-compose`.
+
+```bash
+cd infra
+terraform init
+terraform apply
+```
+
+---
+
+## Database Migrations
+
+Schema changes are managed with Flask-Migrate (Alembic):
+
+```bash
+# Generate a migration after modifying app/models.py
+DATABASE_URL=sqlite:///obsedo.db flask db migrate -m "description"
+DATABASE_URL=sqlite:///obsedo.db flask db upgrade
+
+# Apply in production
 flask db upgrade
 ```
 
-**Key Benefits:**
-
-- Zero-downtime schema changes
-- Version-controlled database evolution
-- Rollback capability for safe deployments
-- Environment-specific configurations (SQLite local, PostgreSQL prod)
-
 ---
 
-## 🧩 Roadmap
-
-### Completed ✅
-
-- [x] Add OpenAI-powered task planning
-- [x] Add GitHub Actions CI
-- [x] Add unit tests for Flask routes
-- [x] Deploy with Terraform + AWS
-- [x] Add task editing with full CRUD operations
-- [x] Add filtering + sorting (priority, category, completion)
-- [x] **Database migrations with Flask-Migrate**
-- [x] **Automatic timestamp tracking for audit trails**
-- [x] **Kubernetes manifests for local Minikube deployment**
-
-### In Progress 🚧
-
-- [ ] Client-side support for user-supplied OpenAI keys
-- [ ] Responsive UI redesign (mobile & dark mode)
-
-### Under Consideration 💭
-
-- [ ] User authentication
-- [ ] Advanced PostgreSQL features for production
-- [ ] Serverless deployment for ECS
-
----
-
-## 🧪 Running Tests
-
-To run tests locally:
+## Tests
 
 ```bash
 pytest tests/
 ```
 
-Make sure `pytest` is installed:
+---
 
-```bash
-pip install pytest
-```
+## Notes
+
+- OpenAI integration is included as an optional module (set `OPENAI_API_KEY` in `.env`). If no key is present it disables gracefully.
+- Developed with assistance from Claude (Anthropic).
 
 ---
 
-## 🔁 GitHub Actions CI/CD
+## License
 
-Every push to `main` and every pull request runs three parallel jobs defined in `.github/workflows/ci.yml`:
-
-| Job | What it does |
-|---|---|
-| `lint-and-build` | Installs dependencies, runs flake8, builds via Docker Compose |
-| `docker` | Builds the Docker image and pushes it to `ghcr.io/jvlyndark/obsedo:<sha>` (push to `main` only) |
-| `helm` | Runs `helm lint` and `helm template` to validate the Helm chart renders without errors |
-
-The image tag is the full git commit SHA, making every published image traceable to an exact commit.
+MIT. See `LICENSE`.
 
 ---
 
-### 🤖 AI-Powered Task Planning (Optional)
+## Contact
 
-Obsedo supports OpenAI integration for automatic task breakdown.
-
-Just enter a goal like:
-
-> "Plan a trip to Berlin"
-
-Obsedo will generate actionable tasks using GPT-3.5.
-
-To enable:
-
-1. Get an [OpenAI API key](https://platform.openai.com/account/api-keys)
-2. Set it in your `.env` file:
-   ```
-   OPENAI_API_KEY=your-key-here
-   ```
-
-If no key is set, the feature is disabled gracefully.
-
----
-
-## ☸️ Run with Kubernetes (Minikube)
-
-Obsedo includes Kubernetes manifests for local deployment with Minikube.
-
-### Requirements
-
-- [Minikube](https://minikube.sigs.k8s.io/docs/start/)
-- [kubectl](https://kubernetes.io/docs/tasks/tools/)
-- Docker Desktop (running)
-
-### Deploy
-
-```bash
-# Start Minikube
-minikube start --driver=docker
-
-# Point your shell at Minikube's Docker daemon
-eval $(minikube docker-env)
-
-# Build the image inside Minikube
-docker build -t obsedo-app:latest .
-
-# Apply manifests
-kubectl apply -f k8s/configmap.yaml
-kubectl apply -f k8s/secret.yaml
-kubectl apply -f k8s/postgres-pvc.yaml
-kubectl apply -f k8s/postgres-deployment.yaml
-kubectl apply -f k8s/postgres-service.yaml
-kubectl apply -f k8s/app-deployment.yaml
-kubectl apply -f k8s/app-service.yaml
-
-# Watch pods come up (wait for both to show Running)
-kubectl get pods -w
-
-# Open the app
-minikube service obsedo-app
-```
-
----
-
-## ⛵ Deploy with Helm (Minikube)
-
-Obsedo ships a Helm chart under `helm/obsedo/` as a more configurable alternative to the raw manifests above.
-
-### Requirements
-
-- All requirements from the Kubernetes section above
-- [Helm](https://helm.sh/docs/intro/install/)
-
-### Deploy
-
-```bash
-# Start Minikube and build the image (same as above)
-minikube start --driver=docker
-eval $(minikube docker-env)
-docker build -t obsedo-app:latest .
-
-# Install the chart
-helm install obsedo ./helm/obsedo
-
-# Watch pods come up, then open the app
-kubectl get pods -w
-minikube service obsedo-app
-```
-
-### Upgrade
-
-```bash
-# Rebuild with a new tag, then upgrade
-docker build -t obsedo-app:v2 .
-helm upgrade obsedo ./helm/obsedo --set app.image.tag=v2
-```
-
-### Uninstall
-
-```bash
-helm uninstall obsedo
-```
-
----
-
-## ☁️ Deploy to AWS with Terraform
-
-Obsedo is fully deployable to the cloud using:
-
-- **Terraform** for infra-as-code
-- **AWS EC2** for hosting
-- **Docker Compose** for service management
-- **GitHub Actions** for CI/CD (Terraform apply coming soon)
-
-You can find Terraform config under `/infra`.
-
-Deployment spins up an EC2 instance, installs Docker, and launches the app via `docker-compose`.
-
----
-
-## 🏗️ Architecture Highlights
-
-**Production-Ready Features:**
-
-- Database migration system for safe schema evolution
-- Environment-specific configurations
-- Containerized deployment with Docker
-- Infrastructure-as-Code with Terraform
-- Automated testing and linting
-- RESTful API design with proper error handling
-- Timestamp auditing for data integrity
-
-**Development Workflow:**
-
-- SQLite for local development (zero setup)
-- PostgreSQL for production (data integrity)
-- Hot-reloading for rapid development
-- Comprehensive test coverage
-
----
-
-## 📄 License
-
-This project is licensed under the MIT License.
-See ./LICENSE for details.
-
----
-
-## ✉️ Contact
-
-#### Ursula J. d'Ark - ursulajdark at gmail dot com
-
-#### Project Link: https://github.com/jvlyndark/obsedo
+Ursula J. d'Ark — ursulajdark at gmail dot com — [github.com/jvlyndark/obsedo](https://github.com/jvlyndark/obsedo)
