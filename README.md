@@ -138,9 +138,17 @@ pip install pytest
 
 ---
 
-## 🔁 GitHub Actions: Lint + Test
+## 🔁 GitHub Actions CI/CD
 
-Tests and flake8 linting are automatically run on every push. CI is defined in `.github/workflows/ci.yml`.
+Every push to `main` and every pull request runs three parallel jobs defined in `.github/workflows/ci.yml`:
+
+| Job | What it does |
+|---|---|
+| `lint-and-build` | Installs dependencies, runs flake8, builds via Docker Compose |
+| `docker` | Builds the Docker image and pushes it to `ghcr.io/jvlyndark/obsedo:<sha>` (push to `main` only) |
+| `helm` | Runs `helm lint` and `helm template` to validate the Helm chart renders without errors |
+
+The image tag is the full git commit SHA, making every published image traceable to an exact commit.
 
 ---
 
