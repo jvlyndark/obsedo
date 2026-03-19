@@ -18,6 +18,7 @@ A portfolio project demonstrating containerised application deployment, infrastr
 | Orchestration | Kubernetes (Minikube), Helm |
 | Infrastructure | Terraform, AWS EC2 |
 | CI/CD | GitHub Actions, GitHub Container Registry |
+| Observability | Prometheus, Grafana |
 | Testing | pytest, flake8 |
 
 ---
@@ -134,6 +135,34 @@ Infrastructure config is under `/infra`. Terraform provisions an EC2 instance, i
 cd infra
 terraform init
 terraform apply
+```
+
+---
+
+## Observability
+
+The Flask app exposes a `/metrics` endpoint in Prometheus format, instrumented via `prometheus-client`. Three metric families are recorded on every request:
+
+| Metric | Type | Description |
+|---|---|---|
+| `flask_http_request_total` | Counter | Request count by method, path, and status code |
+| `flask_http_request_duration_seconds` | Histogram | Latency with default buckets |
+| `flask_http_request_in_progress` | Gauge | In-flight requests |
+
+When deployed on Kubernetes, Prometheus scrapes `/metrics` every 15 seconds and Grafana is provisioned automatically with a dashboard showing request rate, p50/p95/p99 latency, 5xx error rate, and active in-flight requests.
+
+### Access Grafana on Minikube
+
+```bash
+minikube service grafana
+```
+
+No login required — anonymous access is enabled for local development. The **Obsedo Overview** dashboard is pre-loaded under **Dashboards** in the left sidebar.
+
+To disable the observability stack (Helm only):
+
+```bash
+helm install obsedo ./helm/obsedo --set observability.enabled=false
 ```
 
 ---
