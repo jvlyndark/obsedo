@@ -38,3 +38,32 @@ postgres:
 
 secret:
   secretKey: "defaultsecret"
+
+observability:
+  enabled: true
+  prometheus:
+    image:
+      repository: prom/prometheus
+      tag: "v2.51.2"
+    retentionTime: 24h
+    resources:
+      limits:
+        cpu: 200m
+        memory: 256Mi
+      requests:
+        cpu: 50m
+        memory: 128Mi
+  grafana:
+    image:
+      repository: grafana/grafana
+      tag: "10.4.2"
+    service:
+      type: NodePort
+      port: 3000
+    resources:
+      limits:
+        cpu: 200m
+        memory: 256Mi
+      requests:
+        cpu: 50m
+        memory: 128Mi

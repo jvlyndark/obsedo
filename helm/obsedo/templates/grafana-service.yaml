@@ -1,0 +1,15 @@
+{{- if .Values.observability.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana
+  labels:
+    {{- include "obsedo.labels" . | nindent 4 }}
+spec:
+  selector:
+    app: grafana
+  ports:
+    - port: {{ .Values.observability.grafana.service.port }}
+      targetPort: 3000
+  type: {{ .Values.observability.grafana.service.type }}
+{{- end }}

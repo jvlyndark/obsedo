@@ -1,0 +1,19 @@
+{{- if .Values.observability.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+  labels:
+    {{- include "obsedo.labels" . | nindent 4 }}
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+      evaluation_interval: 15s
+
+    scrape_configs:
+      - job_name: 'obsedo'
+        static_configs:
+          - targets: ['obsedo-app:{{ .Values.app.service.port }}']
+        metrics_path: /metrics
+{{- end }}
